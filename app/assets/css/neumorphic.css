@@ -1,0 +1,341 @@
+/* Neumorphic Design System */
+
+/* ============================================
+   COLOR PALETTES
+   ============================================ */
+
+/* Corporate Palette - Light */
+:root,
+[data-theme="light"][data-palette="corporate"] {
+  --neu-bg: #e0e5ec;
+  --neu-bg-gradient: linear-gradient(145deg, #f0f5fc, #ccd4de);
+  --neu-bg-secondary: #d1d9e6;
+  --neu-shadow-light: #ffffff;
+  --neu-shadow-dark: #8a9bb4;
+  --neu-primary: #4a90d9;
+  --neu-primary-hover: #3a7bc8;
+  --neu-text: #2d3748;
+  --neu-text-muted: #718096;
+  --neu-success: #48bb78;
+  --neu-warning: #ed8936;
+  --neu-danger: #f56565;
+}
+
+/* Corporate Palette - Dark */
+[data-theme="dark"][data-palette="corporate"] {
+  --neu-bg: #1a1a2e;
+  --neu-bg-gradient: linear-gradient(145deg, #242445, #121220);
+  --neu-bg-secondary: #16213e;
+  --neu-shadow-light: #353565;
+  --neu-shadow-dark: #0f0f1a;
+  --neu-primary: #4a90d9;
+  --neu-primary-hover: #5da0e9;
+  --neu-text: #e2e8f0;
+  --neu-text-muted: #a0aec0;
+  --neu-success: #68d391;
+  --neu-warning: #f6ad55;
+  --neu-danger: #fc8181;
+}
+
+/* Lava Palette - Light */
+[data-theme="light"][data-palette="lava"] {
+  --neu-bg: #f0e6e6;
+  --neu-bg-gradient: linear-gradient(145deg, #fff0f0, #e0d0d0);
+  --neu-bg-secondary: #e8dada;
+  --neu-shadow-light: #ffffff;
+  --neu-shadow-dark: #b8a0a0;
+  --neu-primary: #ff4d4d;
+  --neu-primary-hover: #e63939;
+  --neu-text: #3d2828;
+  --neu-text-muted: #8b6f6f;
+  --neu-success: #4ade80;
+  --neu-warning: #fbbf24;
+  --neu-danger: #ef4444;
+}
+
+/* Lava Palette - Dark */
+[data-theme="dark"][data-palette="lava"] {
+  --neu-bg: #1a0a0a;
+  --neu-bg-gradient: linear-gradient(145deg, #2a1515, #100505);
+  --neu-bg-secondary: #2a1515;
+  --neu-shadow-light: #4a3535;
+  --neu-shadow-dark: #0a0505;
+  --neu-primary: #ff4d4d;
+  --neu-primary-hover: #ff6666;
+  --neu-text: #fce7e7;
+  --neu-text-muted: #d4a5a5;
+  --neu-success: #86efac;
+  --neu-warning: #fcd34d;
+  --neu-danger: #fca5a5;
+}
+
+/* Dracula Palette - Light */
+[data-theme="light"][data-palette="dracula"] {
+  --neu-bg: #f0f0f5;
+  --neu-bg-gradient: linear-gradient(145deg, #fafaff, #e0e0e8);
+  --neu-bg-secondary: #e4e4ed;
+  --neu-shadow-light: #ffffff;
+  --neu-shadow-dark: #a8a8be;
+  --neu-primary: #bd93f9;
+  --neu-primary-hover: #a87de8;
+  --neu-text: #282a36;
+  --neu-text-muted: #6272a4;
+  --neu-success: #50fa7b;
+  --neu-warning: #f1fa8c;
+  --neu-danger: #ff5555;
+}
+
+/* Dracula Palette - Dark */
+[data-theme="dark"][data-palette="dracula"] {
+  --neu-bg: #282a36;
+  --neu-bg-gradient: linear-gradient(145deg, #353848, #1e2028);
+  --neu-bg-secondary: #343746;
+  --neu-shadow-light: #505570;
+  --neu-shadow-dark: #1a1b23;
+  --neu-primary: #bd93f9;
+  --neu-primary-hover: #cda8ff;
+  --neu-text: #f8f8f2;
+  --neu-text-muted: #6272a4;
+  --neu-success: #50fa7b;
+  --neu-warning: #f1fa8c;
+  --neu-danger: #ff5555;
+}
+
+/* Ocean Palette - Light */
+[data-theme="light"][data-palette="ocean"] {
+  --neu-bg: #e6f0f5;
+  --neu-bg-gradient: linear-gradient(145deg, #f0faff, #d0e0e8);
+  --neu-bg-secondary: #d6e6ed;
+  --neu-shadow-light: #ffffff;
+  --neu-shadow-dark: #9ab8c6;
+  --neu-primary: #00bcd4;
+  --neu-primary-hover: #00a5bb;
+  --neu-text: #1a3a4a;
+  --neu-text-muted: #5a7a8a;
+  --neu-success: #26a69a;
+  --neu-warning: #ffb74d;
+  --neu-danger: #ef5350;
+}
+
+/* Ocean Palette - Dark */
+[data-theme="dark"][data-palette="ocean"] {
+  --neu-bg: #0a1a2a;
+  --neu-bg-gradient: linear-gradient(145deg, #152a40, #051018);
+  --neu-bg-secondary: #0f2540;
+  --neu-shadow-light: #254570;
+  --neu-shadow-dark: #050d15;
+  --neu-primary: #00bcd4;
+  --neu-primary-hover: #26c6da;
+  --neu-text: #e0f7fa;
+  --neu-text-muted: #80cbc4;
+  --neu-success: #4db6ac;
+  --neu-warning: #ffd54f;
+  --neu-danger: #ef9a9a;
+}
+
+/* Forest Palette - Light */
+[data-theme="light"][data-palette="forest"] {
+  --neu-bg: #e6f0e6;
+  --neu-bg-gradient: linear-gradient(145deg, #f0fff0, #d0e0d0);
+  --neu-bg-secondary: #d4e6d4;
+  --neu-shadow-light: #ffffff;
+  --neu-shadow-dark: #9ab89a;
+  --neu-primary: #4caf50;
+  --neu-primary-hover: #43a047;
+  --neu-text: #1a3a1a;
+  --neu-text-muted: #5a7a5a;
+  --neu-success: #66bb6a;
+  --neu-warning: #ffca28;
+  --neu-danger: #ef5350;
+}
+
+/* Forest Palette - Dark */
+[data-theme="dark"][data-palette="forest"] {
+  --neu-bg: #0a1a0a;
+  --neu-bg-gradient: linear-gradient(145deg, #152a15, #050d05);
+  --neu-bg-secondary: #152515;
+  --neu-shadow-light: #304530;
+  --neu-shadow-dark: #050d05;
+  --neu-primary: #4caf50;
+  --neu-primary-hover: #66bb6a;
+  --neu-text: #e8f5e9;
+  --neu-text-muted: #a5d6a7;
+  --neu-success: #81c784;
+  --neu-warning: #ffe082;
+  --neu-danger: #ef9a9a;
+}
+
+/* ============================================
+   SHADOW VARIABLES
+   ============================================ */
+
+:root,
+[data-theme="light"] {
+  --neu-shadow-flat:
+    3px 3px 5px var(--neu-shadow-dark),
+    -2px -2px 6px var(--neu-shadow-light);
+  --neu-shadow-pressed:
+    inset 2px 2px 4px var(--neu-shadow-dark),
+    inset -1px -1px 4px var(--neu-shadow-light);
+  --neu-shadow-convex:
+    3px 3px 5px var(--neu-shadow-dark),
+    -2px -2px 6px var(--neu-shadow-light),
+    inset 1px 1px 2px var(--neu-shadow-light),
+    inset -1px -1px 1px var(--neu-shadow-dark);
+  --neu-shadow-concave:
+    inset 3px 3px 5px var(--neu-shadow-dark),
+    inset -2px -2px 6px var(--neu-shadow-light);
+  --neu-shadow-small:
+    2px 2px 3px var(--neu-shadow-dark),
+    -1px -1px 4px var(--neu-shadow-light);
+  --neu-shadow-small-pressed:
+    inset 1px 1px 2px var(--neu-shadow-dark),
+    inset -1px -1px 2px var(--neu-shadow-light);
+}
+
+[data-theme="dark"] {
+  --neu-shadow-flat:
+    3px 3px 5px var(--neu-shadow-dark),
+    -2px -2px 6px var(--neu-shadow-light);
+  --neu-shadow-pressed:
+    inset 2px 2px 4px var(--neu-shadow-dark),
+    inset -1px -1px 4px var(--neu-shadow-light);
+  --neu-shadow-convex:
+    3px 3px 5px var(--neu-shadow-dark),
+    -2px -2px 6px var(--neu-shadow-light),
+    inset 1px 1px 2px var(--neu-shadow-light),
+    inset -1px -1px 1px var(--neu-shadow-dark);
+  --neu-shadow-concave:
+    inset 3px 3px 5px var(--neu-shadow-dark),
+    inset -2px -2px 6px var(--neu-shadow-light);
+  --neu-shadow-small:
+    2px 2px 3px var(--neu-shadow-dark),
+    -1px -1px 4px var(--neu-shadow-light);
+  --neu-shadow-small-pressed:
+    inset 1px 1px 2px var(--neu-shadow-dark),
+    inset -1px -1px 2px var(--neu-shadow-light);
+}
+
+/* ============================================
+   COMPONENT CLASSES
+   ============================================ */
+
+.neu-flat {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-flat) !important;
+  border-radius: 12px;
+}
+
+.neu-pressed {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-pressed) !important;
+  border-radius: 12px;
+}
+
+.neu-convex {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-convex) !important;
+  border-radius: 12px;
+}
+
+.neu-concave {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-concave) !important;
+  border-radius: 12px;
+}
+
+.neu-card {
+  background: var(--neu-bg-gradient) !important;
+  box-shadow: var(--neu-shadow-flat) !important;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.neu-input {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-pressed) !important;
+  border-radius: 8px;
+  border: none;
+  padding: 0.75rem 1rem;
+  color: var(--neu-text);
+  outline: none;
+}
+
+.neu-input:focus {
+  box-shadow: var(--neu-shadow-concave) !important;
+}
+
+.neu-input::placeholder {
+  color: var(--neu-text-muted);
+}
+
+.neu-btn {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-flat) !important;
+  border-radius: 12px;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  color: var(--neu-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.neu-btn:hover:not(:disabled),
+.neu-btn:active:not(:disabled),
+.neu-btn.active {
+  box-shadow: var(--neu-shadow-pressed) !important;
+}
+
+.neu-btn-primary {
+  background: var(--neu-primary) !important;
+  color: white !important;
+}
+
+.neu-btn-primary:hover:not(:disabled) {
+  background: var(--neu-primary-hover) !important;
+}
+
+.neu-btn-success {
+  background: var(--neu-success) !important;
+  color: white !important;
+}
+
+.neu-btn-warning {
+  background: var(--neu-warning) !important;
+  color: white !important;
+}
+
+.neu-btn-danger {
+  background: var(--neu-danger) !important;
+  color: white !important;
+}
+
+.neu-btn-ghost {
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--neu-text) !important;
+}
+
+.neu-btn-ghost:hover:not(:disabled),
+.neu-btn-ghost:active:not(:disabled) {
+  background: var(--neu-bg) !important;
+  box-shadow: var(--neu-shadow-pressed) !important;
+}
+
+.neu-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neu-shadow-dark) transparent;
+}
+
+.neu-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.neu-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.neu-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--neu-shadow-dark);
+  border-radius: 3px;
+}
