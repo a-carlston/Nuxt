@@ -33,9 +33,9 @@ onUnmounted(() => {
       <div class="relative z-10">
         <NuxtLink to="/" class="flex items-center gap-3 mb-10">
           <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-xl">
-            SF
+            OP
           </div>
-          <span class="font-bold text-xl text-white">ShiftFlow</span>
+          <span class="font-bold text-xl text-white">Optivo</span>
         </NuxtLink>
 
         <!-- Dynamic Content Based on Step -->
@@ -117,7 +117,7 @@ onUnmounted(() => {
       </div>
 
       <div class="relative z-10 text-white/50 text-xs">
-        © 2025 ShiftFlow Inc. All rights reserved.
+        © 2025 Optivo Inc. All rights reserved.
       </div>
     </div>
 
@@ -127,9 +127,9 @@ onUnmounted(() => {
       <div class="lg:hidden p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-2">
           <div class="w-8 h-8 rounded-lg bg-[var(--neu-primary)] flex items-center justify-center text-white font-bold text-sm">
-            SF
+            OP
           </div>
-          <span class="font-bold text-[var(--neu-text)]">ShiftFlow</span>
+          <span class="font-bold text-[var(--neu-text)]">Optivo</span>
         </NuxtLink>
         <span class="text-xs text-[var(--neu-text-muted)]">Step {{ currentStep }} of {{ totalSteps }}</span>
       </div>

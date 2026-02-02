@@ -133,7 +133,7 @@ export const hipaaFeatures = complianceOptions.find(c => c.id === 'hipaa')?.feat
 
 export const testimonials = [
   {
-    quote: "ShiftFlow cut our scheduling time by 80%. What used to take hours now takes minutes.",
+    quote: "Optivo cut our scheduling time by 80%. What used to take hours now takes minutes.",
     author: "Sarah Chen",
     role: "Operations Manager",
     company: "RetailCo",

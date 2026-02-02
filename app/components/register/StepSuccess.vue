@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { email, companyName } = useRegistration()
+const { email, companyName, registrationResult } = useRegistration()
 
 const isProcessing = ref(true)
 const currentStep = ref(0)
@@ -157,7 +157,7 @@ onMounted(() => {
           <span class="absolute -top-3 left-1/2 text-lg animate-sparkle" style="animation-delay: 0.3s">🎉</span>
         </div>
 
-        <h2 class="text-2xl font-bold text-[var(--neu-text)] animate-fade-in-up">Welcome to ShiftFlow!</h2>
+        <h2 class="text-2xl font-bold text-[var(--neu-text)] animate-fade-in-up">Welcome to Optivo!</h2>
         <p class="text-[var(--neu-text-muted)] mt-2 animate-fade-in-up" style="animation-delay: 0.1s">
           {{ companyName || 'Your company' }} is ready to go
         </p>

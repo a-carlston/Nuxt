@@ -38,17 +38,83 @@ const {
   agreeTerms,
   canProceed,
   prevStep,
-  submitRegistration
+  submitRegistration,
+  isSubmitting,
+  submitError
 } = useRegistration()
 
 const isCardFlipped = ref(false)
+const hasAttemptedSubmit = ref(false)
+const hasSeenFlipPrompt = ref(false)
+
+// Track which fields have been touched/blurred
+const touchedFields = ref({
+  cardNumber: false,
+  cardName: false,
+  cardExpiry: false,
+  cardCvc: false,
+  cardSignature: false
+})
+
+// Check if front of card is complete
+const isFrontComplete = computed(() => {
+  return cardNumber.value.replace(/\s/g, '').length >= 15 &&
+         cardName.value.trim().length > 0 &&
+         cardExpiry.value.length === 5
+})
+
+// Check if back of card is complete
+const isBackComplete = computed(() => {
+  return cardCvc.value.length >= 3 &&
+         cardSignature.value.trim().length >= 2
+})
+
+// Current step for the card flow
+const cardStep = computed(() => {
+  if (!isFrontComplete.value) return 1
+  if (!isBackComplete.value) return 2
+  return 3 // All complete
+})
+
+// Validation state for visual feedback
+const cardValidation = computed(() => ({
+  cardNumber: !touchedFields.value.cardNumber || cardNumber.value.replace(/\s/g, '').length >= 15,
+  cardName: !touchedFields.value.cardName || cardName.value.trim().length > 0,
+  cardExpiry: !touchedFields.value.cardExpiry || cardExpiry.value.length === 5,
+  cardCvc: !touchedFields.value.cardCvc || cardCvc.value.length >= 3,
+  cardSignature: !touchedFields.value.cardSignature || cardSignature.value.trim().length >= 2
+}))
+
+// Auto-flip when front is complete
+watch(isFrontComplete, (complete) => {
+  if (complete && !isCardFlipped.value && !hasSeenFlipPrompt.value) {
+    // Small delay for better UX
+    setTimeout(() => {
+      isCardFlipped.value = true
+      hasSeenFlipPrompt.value = true
+    }, 500)
+  }
+})
+
+function markTouched(field: keyof typeof touchedFields.value) {
+  touchedFields.value[field] = true
+}
 
 function focusCvc() {
   isCardFlipped.value = true
 }
 
 function blurCvc() {
-  isCardFlipped.value = false
+  // Don't auto-flip back if signature still needs to be filled
+  if (cardSignature.value.trim().length >= 2) {
+    isCardFlipped.value = false
+  }
+  markTouched('cardCvc')
+}
+
+function flipCard() {
+  isCardFlipped.value = !isCardFlipped.value
+  hasSeenFlipPrompt.value = true
 }
 </script>
 
@@ -56,15 +122,87 @@ function blurCvc() {
   <NeuCardForm title="Billing information" subtitle="You won't be charged until your trial ends">
     <div class="space-y-6">
       <!-- Interactive Credit Card -->
-      <div class="overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
-          <label class="text-sm font-semibold text-[var(--neu-text)]">Payment method</label>
-          <span class="text-[10px] sm:text-xs text-[var(--neu-primary)] flex items-center gap-1">
-            <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+      <div>
+        <div class="flex flex-col gap-3 mb-4">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-semibold text-[var(--neu-text)]">Payment method</label>
+            <span v-if="cardStep === 3" class="text-xs text-green-500 flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Card complete
+            </span>
+          </div>
+
+          <!-- Step Indicator -->
+          <div class="flex items-center justify-center gap-2">
+            <!-- Step 1: Front -->
+            <button
+              type="button"
+              @click="isCardFlipped = false"
+              :class="[
+                'flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                !isCardFlipped
+                  ? 'bg-[var(--neu-primary)] text-white shadow-md'
+                  : isFrontComplete
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    : 'bg-[var(--neu-bg-secondary)] text-[var(--neu-text-muted)]'
+              ]"
+            >
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                :class="isFrontComplete ? 'bg-green-500 text-white' : 'bg-white/20'">
+                <svg v-if="isFrontComplete" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+                <span v-else>1</span>
+              </span>
+              Card Front
+            </button>
+
+            <!-- Arrow -->
+            <svg class="w-4 h-4 text-[var(--neu-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-            Click on card to enter details
-          </span>
+
+            <!-- Step 2: Back -->
+            <button
+              type="button"
+              @click="isCardFlipped = true"
+              :class="[
+                'flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                isCardFlipped
+                  ? 'bg-[var(--neu-primary)] text-white shadow-md'
+                  : isBackComplete
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                    : isFrontComplete
+                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 animate-pulse'
+                      : 'bg-[var(--neu-bg-secondary)] text-[var(--neu-text-muted)]'
+              ]"
+            >
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                :class="isBackComplete ? 'bg-green-500 text-white' : isFrontComplete ? 'bg-amber-500 text-white' : 'bg-gray-300 dark:bg-gray-600'">
+                <svg v-if="isBackComplete" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+                <span v-else>2</span>
+              </span>
+              Card Back
+              <span v-if="isFrontComplete && !isBackComplete && !isCardFlipped" class="text-[10px]">(CVC + Sign)</span>
+            </button>
+          </div>
+
+          <!-- Instruction text -->
+          <p class="text-xs text-center text-[var(--neu-text-muted)]">
+            <template v-if="!isFrontComplete">
+              Enter your card number, name, and expiration date on the front
+            </template>
+            <template v-else-if="!isBackComplete">
+              <span class="text-amber-600 dark:text-amber-400 font-medium">Now flip to back</span> to enter CVC and sign
+            </template>
+            <template v-else>
+              Card details complete
+            </template>
+          </p>
         </div>
 
         <!-- Card Container with Flip -->
@@ -114,12 +252,14 @@ function blurCvc() {
                   <input
                     :value="cardNumber"
                     @input="formatCardNumber"
+                    @blur="markTouched('cardNumber')"
                     type="text"
                     inputmode="numeric"
                     placeholder="•••• •••• •••• ••••"
                     :class="[
                       'card-input w-full bg-white/10 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-white font-mono text-sm sm:text-lg tracking-wider placeholder-white/40 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all',
-                      !cardNumber && 'animate-pulse-subtle'
+                      !cardNumber && !touchedFields.cardNumber && 'animate-pulse-subtle',
+                      !cardValidation.cardNumber && 'ring-2 ring-red-500 border-red-500'
                     ]"
                   />
                 </div>
@@ -130,9 +270,13 @@ function blurCvc() {
                     <p class="text-[8px] sm:text-[10px] uppercase opacity-60 mb-0.5 sm:mb-1">Card Holder</p>
                     <input
                       v-model="cardName"
+                      @blur="markTouched('cardName')"
                       type="text"
                       placeholder="YOUR NAME"
-                      class="card-input w-full bg-white/10 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-white font-medium text-xs sm:text-sm uppercase tracking-wide placeholder-white/40 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all"
+                      :class="[
+                        'card-input w-full bg-white/10 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-white font-medium text-xs sm:text-sm uppercase tracking-wide placeholder-white/40 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all',
+                        !cardValidation.cardName && 'ring-2 ring-red-500 border-red-500'
+                      ]"
                     />
                   </div>
                   <div class="flex-shrink-0">
@@ -140,10 +284,14 @@ function blurCvc() {
                     <input
                       :value="cardExpiry"
                       @input="formatExpiry"
+                      @blur="markTouched('cardExpiry')"
                       type="text"
                       inputmode="numeric"
                       placeholder="MM/YY"
-                      class="card-input w-16 sm:w-20 bg-white/10 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-white font-mono text-xs sm:text-sm text-center placeholder-white/40 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all"
+                      :class="[
+                        'card-input w-16 sm:w-20 bg-white/10 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 text-white font-mono text-xs sm:text-sm text-center placeholder-white/40 focus:outline-none focus:bg-white/20 focus:ring-2 focus:ring-white/30 transition-all',
+                        !cardValidation.cardExpiry && 'ring-2 ring-red-500 border-red-500'
+                      ]"
                     />
                   </div>
                 </div>
@@ -166,29 +314,33 @@ function blurCvc() {
               <div class="w-full h-6 sm:h-10 bg-gray-900 mt-3 sm:mt-5" />
 
               <!-- CVV & Signature Section -->
-              <div class="px-3 sm:px-5 mt-2 sm:mt-3">
-                <div class="flex items-start gap-2 sm:gap-3">
+              <div class="px-3 sm:px-5 mt-3 sm:mt-4">
+                <div class="flex items-start gap-3 sm:gap-4">
                   <!-- Signature Area -->
                   <div class="flex-1">
-                    <p class="text-[7px] sm:text-[9px] text-white/60 mb-1 leading-tight">
-                      I authorize billing based on active headcount after trial. Auto-renews until cancelled.
+                    <p class="text-[9px] sm:text-xs text-white/70 mb-1.5 leading-tight font-medium">
+                      Sign below to authorize billing
                     </p>
                     <div class="relative">
                       <input
                         v-model="cardSignature"
+                        @blur="markTouched('cardSignature')"
                         type="text"
-                        :placeholder="cardName || 'Sign here'"
-                        class="w-full h-7 sm:h-9 bg-white/90 rounded px-2 text-gray-800 text-xs sm:text-sm italic placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        :placeholder="cardName || 'Type your name to sign'"
+                        :class="[
+                          'w-full h-9 sm:h-11 bg-white/95 rounded-lg px-3 text-gray-800 text-sm sm:text-base italic placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                          !cardValidation.cardSignature && 'ring-2 ring-red-500'
+                        ]"
                         style="font-family: 'Brush Script MT', cursive, serif;"
                       />
-                      <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] sm:text-[10px] text-gray-400">
+                      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] sm:text-[11px] text-gray-400">
                         {{ trialEndDate }}
                       </span>
                     </div>
                   </div>
                   <!-- CVC -->
-                  <div class="text-right flex-shrink-0">
-                    <p class="text-[8px] sm:text-[10px] text-white/60 uppercase mb-0.5 sm:mb-1">CVC</p>
+                  <div class="text-center flex-shrink-0">
+                    <p class="text-[9px] sm:text-xs text-white/70 uppercase mb-1.5 font-medium">CVC</p>
                     <input
                       :value="cardCvc"
                       @input="formatCvc"
@@ -197,32 +349,42 @@ function blurCvc() {
                       type="text"
                       inputmode="numeric"
                       placeholder="•••"
-                      class="w-12 sm:w-14 h-7 sm:h-9 bg-white rounded text-gray-800 font-mono text-center text-base sm:text-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      :class="[
+                        'w-14 sm:w-16 h-9 sm:h-11 bg-white rounded-lg text-gray-800 font-mono text-center text-lg sm:text-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400',
+                        !cardValidation.cardCvc && 'ring-2 ring-red-500'
+                      ]"
                     />
                   </div>
                 </div>
               </div>
 
               <!-- Agreement Text -->
-              <div class="px-3 sm:px-5 mt-1 sm:mt-2">
-                <p class="text-[6px] sm:text-[8px] text-white/40 leading-tight">
-                  By signing, you agree to be charged monthly based on your active employee headcount starting {{ trialEndDate }}.
-                  Subscription auto-renews until cancelled. Cancel anytime from your account settings.
+              <div class="px-3 sm:px-5 mt-2 sm:mt-3">
+                <p class="text-[8px] sm:text-[10px] text-white/50 leading-tight">
+                  By signing, you agree to be charged based on active headcount starting {{ trialEndDate }}.
+                  Auto-renews until cancelled.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- CVC Input Helper (for mobile/accessibility) -->
-        <div class="flex items-center justify-center gap-2 text-sm text-[var(--neu-text-muted)]">
+        <!-- Quick flip button for mobile -->
+        <div class="flex justify-center mt-4 pt-2">
           <button
             type="button"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-            :class="isCardFlipped ? 'bg-[var(--neu-bg-secondary)] text-[var(--neu-text)]' : 'text-[var(--neu-primary)]'"
-            @click="isCardFlipped = !isCardFlipped"
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all neu-btn-flip"
+            :class="[
+              isFrontComplete && !isBackComplete && !isCardFlipped
+                ? 'bg-amber-500 text-white shadow-lg animate-bounce-subtle'
+                : 'bg-[var(--neu-bg-secondary)] text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]'
+            ]"
+            @click="flipCard"
           >
-            {{ isCardFlipped ? 'Show front' : 'Enter CVC on back' }}
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ isCardFlipped ? 'View front of card' : 'Flip to back of card' }}
           </button>
         </div>
       </div>
@@ -304,13 +466,19 @@ function blurCvc() {
           </span>
         </template>
       </NeuCheckbox>
-    </div>
+
+      </div>
     <template #footer>
-      <div class="flex justify-between">
-        <NeuButton variant="ghost" @click="prevStep">Back</NeuButton>
-        <NeuButton variant="primary" :disabled="!canProceed" @click="submitRegistration">
-          Start Free Trial
-        </NeuButton>
+      <div class="space-y-3">
+        <div v-if="submitError" class="p-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm">
+          {{ submitError }}
+        </div>
+        <div class="flex justify-between">
+          <NeuButton variant="ghost" :disabled="isSubmitting" @click="prevStep">Back</NeuButton>
+          <NeuButton variant="primary" :disabled="!canProceed || isSubmitting" :loading="isSubmitting" @click="submitRegistration">
+            {{ isSubmitting ? 'Creating account...' : 'Start Free Trial' }}
+          </NeuButton>
+        </div>
       </div>
     </template>
   </NeuCardForm>
@@ -359,5 +527,27 @@ function blurCvc() {
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 1s ease-in-out infinite;
+}
+
+.neu-btn-flip {
+  box-shadow: var(--neu-shadow-flat);
+  transition: all 0.2s ease;
+}
+
+.neu-btn-flip:hover {
+  box-shadow: var(--neu-shadow-raised);
 }
 </style>

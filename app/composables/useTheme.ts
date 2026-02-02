@@ -3,12 +3,18 @@ export type ColorPalette = 'corporate' | 'lava' | 'dracula' | 'ocean' | 'forest'
 
 const THEME_KEY = 'neu-theme-mode'
 const PALETTE_KEY = 'neu-color-palette'
+const THEME_COOKIE = 'neu-theme'
+const PALETTE_COOKIE = 'neu-palette'
 
 export function useTheme() {
   const themeMode = useState<ThemeMode>('theme-mode', () => 'system')
   const colorPalette = useState<ColorPalette>('color-palette', () => 'corporate')
   const systemPrefersDark = useState<boolean>('system-prefers-dark', () => false)
   const isInitialized = useState<boolean>('theme-initialized', () => false)
+
+  // Read cookies on both server and client
+  const themeCookie = useCookie<ThemeMode>(THEME_COOKIE, { default: () => 'system' })
+  const paletteCookie = useCookie<ColorPalette>(PALETTE_COOKIE, { default: () => 'corporate' })
 
   const effectiveTheme = computed(() => {
     if (themeMode.value === 'system') {
@@ -21,6 +27,7 @@ export function useTheme() {
 
   function setThemeMode(mode: ThemeMode) {
     themeMode.value = mode
+    themeCookie.value = mode
     if (import.meta.client) {
       localStorage.setItem(THEME_KEY, mode)
       applyTheme()
@@ -29,6 +36,7 @@ export function useTheme() {
 
   function setPalette(palette: ColorPalette) {
     colorPalette.value = palette
+    paletteCookie.value = palette
     if (import.meta.client) {
       localStorage.setItem(PALETTE_KEY, palette)
       applyTheme()
@@ -59,16 +67,24 @@ export function useTheme() {
   function initTheme() {
     if (!import.meta.client || isInitialized.value) return
 
-    // Load saved preferences
+    // Load saved preferences from localStorage (primary) or cookie (fallback)
     const savedTheme = localStorage.getItem(THEME_KEY) as ThemeMode | null
     const savedPalette = localStorage.getItem(PALETTE_KEY) as ColorPalette | null
 
     if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
       themeMode.value = savedTheme
+      themeCookie.value = savedTheme // Sync cookie
+    } else if (themeCookie.value) {
+      themeMode.value = themeCookie.value
+      localStorage.setItem(THEME_KEY, themeCookie.value)
     }
 
     if (savedPalette && ['corporate', 'lava', 'dracula', 'ocean', 'forest'].includes(savedPalette)) {
       colorPalette.value = savedPalette
+      paletteCookie.value = savedPalette // Sync cookie
+    } else if (paletteCookie.value) {
+      colorPalette.value = paletteCookie.value
+      localStorage.setItem(PALETTE_KEY, paletteCookie.value)
     }
 
     // Watch for system preference changes

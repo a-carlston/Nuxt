@@ -19,6 +19,7 @@ const maidenName = ref('')
 const phone = ref('')
 const avatarFile = ref<File | null>(null)
 const avatarPreview = ref<string | null>(null)
+const avatarUrl = ref<string | null>(null) // R2 URL after upload
 
 // Step 1: Personal Address
 const personalCountry = ref<string | null>('US')
@@ -39,9 +40,11 @@ const website = ref('')
 const taxId = ref('')
 const logoFile = ref<File | null>(null)
 const logoPreview = ref<string | null>(null)
+const logoUrl = ref<string | null>(null) // R2 URL after upload
 const useCustomHeader = ref(false)
 const headerImageFile = ref<File | null>(null)
 const headerImagePreview = ref<string | null>(null)
+const headerImageUrl = ref<string | null>(null) // R2 URL after upload
 
 // Step 2: Company Address
 const companyCountry = ref<string | null>('US')
@@ -70,6 +73,7 @@ const cardNumber = ref('')
 const cardExpiry = ref('')
 const cardCvc = ref('')
 const cardSignature = ref('')
+
 
 export function useRegistration() {
   // Countries with flags
@@ -173,44 +177,90 @@ export function useRegistration() {
     }
   })
 
+  // Upload helper
+  const isUploading = ref(false)
+  const uploadError = ref<string | null>(null)
+
+  async function uploadToR2(file: File, type: 'avatar' | 'logo' | 'header' | 'document'): Promise<string | null> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', type)
+
+    try {
+      const response = await $fetch<{ success: boolean; url: string }>('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      return response.url
+    } catch (error: any) {
+      console.error('Upload error:', error)
+      uploadError.value = error.data?.message || 'Failed to upload file'
+      return null
+    }
+  }
+
   // Avatar/Logo handlers
-  function handleAvatarUpload(e: Event) {
+  async function handleAvatarUpload(e: Event) {
     const input = e.target as HTMLInputElement
     if (input.files && input.files[0]) {
       avatarFile.value = input.files[0]
       avatarPreview.value = URL.createObjectURL(input.files[0])
+
+      // Upload to R2
+      isUploading.value = true
+      uploadError.value = null
+      const url = await uploadToR2(input.files[0], 'avatar')
+      if (url) avatarUrl.value = url
+      isUploading.value = false
     }
   }
 
-  function handleLogoUpload(e: Event) {
+  async function handleLogoUpload(e: Event) {
     const input = e.target as HTMLInputElement
     if (input.files && input.files[0]) {
       logoFile.value = input.files[0]
       logoPreview.value = URL.createObjectURL(input.files[0])
+
+      // Upload to R2
+      isUploading.value = true
+      uploadError.value = null
+      const url = await uploadToR2(input.files[0], 'logo')
+      if (url) logoUrl.value = url
+      isUploading.value = false
     }
   }
 
   function removeAvatar() {
     avatarFile.value = null
     avatarPreview.value = null
+    avatarUrl.value = null
   }
 
   function removeLogo() {
     logoFile.value = null
     logoPreview.value = null
+    logoUrl.value = null
   }
 
-  function handleHeaderImageUpload(e: Event) {
+  async function handleHeaderImageUpload(e: Event) {
     const input = e.target as HTMLInputElement
     if (input.files && input.files[0]) {
       headerImageFile.value = input.files[0]
       headerImagePreview.value = URL.createObjectURL(input.files[0])
+
+      // Upload to R2
+      isUploading.value = true
+      uploadError.value = null
+      const url = await uploadToR2(input.files[0], 'header')
+      if (url) headerImageUrl.value = url
+      isUploading.value = false
     }
   }
 
   function removeHeaderImage() {
     headerImageFile.value = null
     headerImagePreview.value = null
+    headerImageUrl.value = null
   }
 
   // Slug generation
@@ -237,17 +287,42 @@ export function useRegistration() {
     }
     slugStatus.value = 'checking'
     slugCheckTimeout = setTimeout(() => {
-      const taken = ['acme', 'demo', 'test', 'admin', 'shiftflow']
+      const taken = ['acme', 'demo', 'test', 'admin', 'optivo']
       slugStatus.value = taken.includes(newSlug.toLowerCase()) ? 'taken' : 'available'
     }, 500)
   })
 
   // Card formatting
+  // Max lengths: AMEX = 15, most cards = 16, some international = 19
   function formatCardNumber(e: Event) {
     const input = e.target as HTMLInputElement
     let value = input.value.replace(/\D/g, '')
-    value = value.substring(0, 16)
-    value = value.replace(/(\d{4})(?=\d)/g, '$1 ')
+
+    // Determine max length based on card type (detected from first digits)
+    let maxLength = 16
+    if (/^3[47]/.test(value)) {
+      // AMEX: 15 digits
+      maxLength = 15
+    } else if (/^(6|9|35)/.test(value)) {
+      // Some international cards (Maestro, JCB, etc.): up to 19 digits
+      maxLength = 19
+    }
+
+    value = value.substring(0, maxLength)
+
+    // Format with spaces (AMEX: 4-6-5, others: 4-4-4-4-...)
+    if (/^3[47]/.test(value)) {
+      // AMEX format: 3782 822463 10005
+      value = value.replace(/(\d{4})(\d{1,6})?(\d{1,5})?/, (_, a, b, c) => {
+        let result = a
+        if (b) result += ' ' + b
+        if (c) result += ' ' + c
+        return result
+      })
+    } else {
+      value = value.replace(/(\d{4})(?=\d)/g, '$1 ')
+    }
+
     cardNumber.value = value
   }
 
@@ -387,9 +462,6 @@ export function useRegistration() {
   })
 
   const canProceed = computed(() => {
-    // Allow skipping validation in dev mode
-    if (import.meta.dev) return true
-
     switch (currentStep.value) {
       case 1: return step1Valid.value
       case 2: return step2Valid.value
@@ -414,9 +486,80 @@ export function useRegistration() {
     }
   }
 
-  function submitRegistration() {
-    console.log('Registration submitted')
-    currentStep.value = 5
+  const isSubmitting = ref(false)
+  const submitError = ref<string | null>(null)
+  const registrationResult = ref<any>(null)
+
+  async function submitRegistration() {
+    isSubmitting.value = true
+    submitError.value = null
+
+    try {
+      const response = await $fetch('/api/register', {
+        method: 'POST',
+        body: {
+          // Account
+          email: email.value,
+          password: password.value,
+          // Personal Info
+          firstName: firstName.value,
+          preferredName: preferredName.value,
+          lastName: lastName.value,
+          maidenName: maidenName.value,
+          phone: phone.value,
+          personalPhoneCode: personalPhoneCode.value,
+          avatarUrl: avatarUrl.value,
+          // Personal Address
+          personalCountry: personalCountry.value,
+          personalState: personalState.value,
+          personalCity: personalCity.value,
+          personalAddress: personalAddress.value,
+          personalAddress2: personalAddress2.value,
+          personalZip: personalZip.value,
+          // Company Info
+          companyName: companyName.value,
+          companyTagline: companyTagline.value,
+          companySlug: companySlug.value,
+          industry: industry.value,
+          companySize: companySize.value,
+          website: website.value,
+          taxId: taxId.value,
+          logoUrl: logoUrl.value,
+          useCustomHeader: useCustomHeader.value,
+          headerImageUrl: headerImageUrl.value,
+          // Company Address
+          companyCountry: companyCountry.value,
+          companyState: companyState.value,
+          companyCity: companyCity.value,
+          companyAddress: companyAddress.value,
+          companyAddress2: companyAddress2.value,
+          companyZip: companyZip.value,
+          // Plan
+          selectedPlan: selectedPlan.value,
+          billingCycle: billingCycle.value,
+          selectedCompliance: selectedCompliance.value,
+          estimatedEmployees: estimatedEmployees.value,
+          // Billing Address
+          sameAsCompany: sameAsCompany.value,
+          billingCountry: billingCountry.value,
+          billingState: billingState.value,
+          billingCity: billingCity.value,
+          billingAddress: billingAddress.value,
+          billingAddress2: billingAddress2.value,
+          billingZip: billingZip.value,
+          // Card info (in production, use Stripe tokenization)
+          cardName: cardName.value
+        }
+      })
+
+      registrationResult.value = response
+      currentStep.value = 5
+    } catch (error: any) {
+      submitError.value = error.data?.message || 'Registration failed. Please try again.'
+      console.error('Registration error:', error)
+    } finally {
+      isSubmitting.value = false
+    }
   }
 
   return {
@@ -435,6 +578,7 @@ export function useRegistration() {
     maidenName,
     phone,
     avatarPreview,
+    avatarUrl,
     // Step 1: Personal Address
     personalCountry,
     personalState,
@@ -460,8 +604,12 @@ export function useRegistration() {
     website,
     taxId,
     logoPreview,
+    logoUrl,
     useCustomHeader,
     headerImagePreview,
+    headerImageUrl,
+    isUploading,
+    uploadError,
     // Step 4
     companyCountry,
     companyState,
@@ -514,6 +662,10 @@ export function useRegistration() {
     formatCvc,
     nextStep,
     prevStep,
-    submitRegistration
+    submitRegistration,
+    // Submission state
+    isSubmitting,
+    submitError,
+    registrationResult
   }
 }

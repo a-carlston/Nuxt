@@ -98,7 +98,7 @@ const pricingPlans = [
 
 const testimonials = [
   {
-    quote: "ShiftFlow cut our scheduling time by 80%. What used to take hours now takes minutes.",
+    quote: "Optivo cut our scheduling time by 80%. What used to take hours now takes minutes.",
     author: "Sarah Chen",
     role: "Operations Manager",
     company: "RetailCo"
@@ -129,9 +129,9 @@ const testimonials = [
       <template #logo>
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-[var(--neu-primary)] flex items-center justify-center text-white font-bold text-xl">
-            SF
+            OP
           </div>
-          <span class="font-bold text-xl text-[var(--neu-text)]">ShiftFlow</span>
+          <span class="font-bold text-xl text-[var(--neu-text)]">Optivo</span>
         </div>
       </template>
       <template #actions>
@@ -306,7 +306,7 @@ const testimonials = [
             Everything you need to manage your workforce
           </h2>
           <p class="text-lg text-[var(--neu-text-muted)] max-w-2xl mx-auto">
-            From scheduling to payroll prep, ShiftFlow has the tools to streamline your operations.
+            From scheduling to payroll prep, Optivo has the tools to streamline your operations.
           </p>
         </div>
 
@@ -435,7 +435,7 @@ const testimonials = [
         </h2>
         <p class="text-lg text-[var(--neu-text-muted)] mb-8 leading-relaxed">
           We spent years managing hourly teams and dealing with spreadsheets,
-          text message scheduling, and payroll headaches. ShiftFlow was born from
+          text message scheduling, and payroll headaches. Optivo was born from
           the frustration of not having a tool that just worked. Today, we're proud
           to help thousands of businesses run smoother operations.
         </p>
@@ -492,9 +492,9 @@ const testimonials = [
           <div>
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 rounded-lg bg-[var(--neu-primary)] flex items-center justify-center text-white font-bold text-sm">
-                SF
+                OP
               </div>
-              <span class="font-semibold text-[var(--neu-text)]">ShiftFlow</span>
+              <span class="font-semibold text-[var(--neu-text)]">Optivo</span>
             </div>
             <p class="text-sm text-[var(--neu-text-muted)]">
               The modern workforce management platform for growing teams.
@@ -529,7 +529,7 @@ const testimonials = [
         </div>
         <div class="pt-8 border-t border-[var(--neu-shadow-dark)]/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p class="text-sm text-[var(--neu-text-muted)]">
-            © 2025 ShiftFlow. All rights reserved.
+            © 2025 Optivo. All rights reserved.
           </p>
           <div class="flex items-center gap-4">
             <button

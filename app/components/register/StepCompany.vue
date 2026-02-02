@@ -99,7 +99,7 @@ function triggerHeaderUpload() {
         <label class="block text-sm font-medium text-[var(--neu-text)] mb-2">Company URL</label>
         <div class="neu-inset-field flex items-center rounded-xl overflow-hidden">
           <span class="px-4 py-2.5 text-sm text-[var(--neu-text-muted)] whitespace-nowrap">
-            shiftflow.app/
+            optivo.app/
           </span>
           <div class="flex-1 relative">
             <input
@@ -142,19 +142,19 @@ function triggerHeaderUpload() {
         />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <NeuSelect
-            v-model="companyCity"
-            label="City"
-            placeholder="Select city"
-            :options="companyCities"
-            :disabled="!companyState"
-            searchable
-          />
-          <NeuSelect
             v-model="companyState"
             label="State / Province"
             placeholder="Select state"
             :options="companyStates"
             :disabled="!companyCountry"
+            searchable
+          />
+          <NeuSelect
+            v-model="companyCity"
+            label="City"
+            placeholder="Select city"
+            :options="companyCities"
+            :disabled="!companyState"
             searchable
           />
         </div>
