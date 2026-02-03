@@ -116,7 +116,7 @@ async function signIn() {
 
       // Redirect based on onboarding status
       if (response.onboardingCompleted) {
-        await navigateTo(`/dashboard`)
+        await navigateTo(`/${slug.value}/dashboard`)
       } else {
         await navigateTo(`/onboarding`)
       }
