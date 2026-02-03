@@ -7,8 +7,24 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--neu-bg);
+  /* Fallback to dark bg to prevent white flash */
+  background: #2a2f3a;
+  background: var(--neu-bg, #2a2f3a);
   min-height: 100vh;
+}
+
+/* Ensure dark mode has correct bg even before variables fully load */
+html.dark, html.dark body,
+html[data-theme="dark"], html[data-theme="dark"] body {
+  background: #2a2f3a;
+  background: var(--neu-bg, #2a2f3a);
+}
+
+/* Light mode fallback */
+html:not(.dark):not([data-theme="dark"]),
+html:not(.dark):not([data-theme="dark"]) body {
+  background: #e0e5ec;
+  background: var(--neu-bg, #e0e5ec);
 }
 
 
@@ -22,8 +38,14 @@ html, body {
   z-index: 99999;
   display: flex;
   flex-direction: column;
-  background: var(--neu-bg);
+  background: #2a2f3a;
+  background: var(--neu-bg, #2a2f3a);
   transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+}
+
+html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
+  background: #e0e5ec;
+  background: var(--neu-bg, #e0e5ec);
 }
 
 .skeleton-overlay.hidden {

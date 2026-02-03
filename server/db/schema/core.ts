@@ -59,6 +59,7 @@ export const coreUsers = pgTable(
     auth_last_login_at: timestamp('auth_last_login_at', { withTimezone: true }),
     auth_mfa_enabled: boolean('auth_mfa_enabled').default(false).notNull(),
     auth_mfa_secret: varchar('auth_mfa_secret', { length: 255 }), // Encrypted at app level
+    auth_onboarding_completed_at: timestamp('auth_onboarding_completed_at', { withTimezone: true }),
 
     // personal_
     personal_first_name: varchar('personal_first_name', { length: 100 }).notNull(),
@@ -71,6 +72,8 @@ export const coreUsers = pgTable(
     personal_avatar_url: varchar('personal_avatar_url', { length: 500 }),
     personal_date_of_birth: date('personal_date_of_birth'),
     personal_gender: varchar('personal_gender', { length: 20 }),
+    personal_nationality: varchar('personal_nationality', { length: 10 }),
+    personal_ssn: varchar('personal_ssn', { length: 50 }), // Encrypted at app level
 
     // personal_address_
     personal_address_country_code: varchar('personal_address_country_code', { length: 2 }),
@@ -80,12 +83,24 @@ export const coreUsers = pgTable(
     personal_address_line2: varchar('personal_address_line2', { length: 255 }),
     personal_address_postal_code: varchar('personal_address_postal_code', { length: 20 }),
 
+    // emergency_contact_
+    emergency_contact_name: varchar('emergency_contact_name', { length: 100 }),
+    emergency_contact_relationship: varchar('emergency_contact_relationship', { length: 50 }),
+    emergency_contact_phone: varchar('emergency_contact_phone', { length: 30 }),
+    emergency_contact_email: varchar('emergency_contact_email', { length: 255 }),
+    emergency_contact_address: text('emergency_contact_address'),
+
     // company_
     company_email: varchar('company_email', { length: 255 }).unique(),
     company_phone: varchar('company_phone', { length: 30 }),
     company_phone_ext: varchar('company_phone_ext', { length: 10 }),
     company_employee_id: varchar('company_employee_id', { length: 50 }),
     company_title: varchar('company_title', { length: 100 }),
+    company_department: varchar('company_department', { length: 100 }),
+    company_division: varchar('company_division', { length: 100 }),
+    company_location: varchar('company_location', { length: 100 }),
+    company_start_date: date('company_start_date'),
+    company_employment_type: varchar('company_employment_type', { length: 30 }),
     company_hire_date: date('company_hire_date'),
     company_termination_date: date('company_termination_date'),
     company_avatar_url: varchar('company_avatar_url', { length: 500 }),

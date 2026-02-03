@@ -27,7 +27,9 @@ function handleNavSelect(id: string) {
 }
 
 function handleAvatarMenu(id: string) {
-  if (id === 'login' || id === 'signup') {
+  if (id === 'login') {
+    navigateTo('/find-domain')
+  } else if (id === 'signup') {
     navigateTo('/register')
   }
 }
@@ -135,7 +137,7 @@ const testimonials = [
         </div>
       </template>
       <template #actions>
-        <NuxtLink to="/register">
+        <NuxtLink to="/find-domain">
           <NeuButton
             variant="ghost"
             size="sm"

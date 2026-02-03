@@ -7,6 +7,17 @@ export default defineNuxtConfig({
     '~/assets/css/main.css',
     '~/assets/css/neumorphic.css'
   ],
+  app: {
+    head: {
+      script: [
+        {
+          // Blocking script to prevent theme flash - runs before anything renders
+          innerHTML: `(function(){try{var t=localStorage.getItem('neu-theme')||document.cookie.match(/neu-theme=([^;]+)/)?.[1];var p=localStorage.getItem('neu-palette')||document.cookie.match(/neu-palette=([^;]+)/)?.[1]||'corporate';var d=document.documentElement;if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark');d.setAttribute('data-theme','dark')}else{d.setAttribute('data-theme','light')}d.setAttribute('data-palette',p)}catch(e){}})()`,
+          type: 'text/javascript'
+        }
+      ]
+    }
+  },
   tailwindcss: {
     cssPath: '~/assets/css/main.css',
     configPath: 'tailwind.config.ts'
