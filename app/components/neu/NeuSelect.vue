@@ -59,9 +59,9 @@ const enabledOptions = computed(() => {
 })
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2.5 text-base',
-  lg: 'px-5 py-3 text-lg'
+  sm: 'px-3 py-1.5 text-xs',   // ~30px - compact
+  md: 'px-3 py-2 text-sm',     // ~38px - standard
+  lg: 'px-4 py-2.5 text-base'  // ~44px - large
 }
 
 // Reset highlighted index when filtered options change
@@ -254,7 +254,7 @@ onUnmounted(() => {
       type="button"
       :disabled="disabled"
       :class="[
-        'neu-select-trigger w-full rounded-xl text-left transition-all duration-200',
+        'neu-select-trigger w-full rounded-lg text-left transition-all duration-200',
         'bg-[var(--neu-bg)]',
         sizeClasses[size],
         {

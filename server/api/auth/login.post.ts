@@ -1,5 +1,9 @@
 import { eq } from 'drizzle-orm'
 import { useParentDb, useTenantDb, parentSchema, coreUsers } from '../../db'
+import {
+  createSession,
+  setSessionCookie
+} from '../../utils/session'
 
 // Simple password hashing (must match registration)
 async function hashPassword(password: string): Promise<string> {
@@ -98,12 +102,29 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // TODO: Create session/JWT token
-    // For now, we'll just return success
-    // In production, you'd want to:
-    // 1. Create a session in the database
-    // 2. Set an HTTP-only cookie with session ID or JWT
-    // 3. Include CSRF protection
+    // Create session with user data
+    const sessionToken = createSession({
+      userId: user.id,
+      tenantId: tenant.id,
+      tenantSlug: body.slug.toLowerCase(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatarUrl: user.avatarUrl
+    }, body.rememberMe === true)
+
+    // Set HTTP-only session cookie
+    setSessionCookie(event, sessionToken, body.rememberMe === true)
+
+    // Update last login timestamp
+    try {
+      await tenantDb
+        .update(coreUsers)
+        .set({ auth_last_login_at: new Date() })
+        .where(eq(coreUsers.meta_id, user.id))
+    } catch (updateError) {
+      console.error('Failed to update last login:', updateError)
+    }
 
     // Log the login in parent audit logs (don't let this break login)
     try {

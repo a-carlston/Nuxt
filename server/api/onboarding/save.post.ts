@@ -34,6 +34,14 @@ export default defineEventHandler(async (event) => {
     // Connect to tenant database
     const tenantDb = useTenantDb(tenant.connectionString)
 
+    // Debug: Log incoming data for key fields
+    console.log('Onboarding SAVE - Incoming data:', {
+      nationality: body.data.nationality,
+      emergencyContactName: body.data.emergencyContactName,
+      emergencyContactPhone: body.data.emergencyContactPhone,
+      emergencyContactRelationship: body.data.emergencyContactRelationship
+    })
+
     // Build update object based on provided data
     const updateData: Record<string, any> = {
       meta_updated_at: new Date()
@@ -77,6 +85,14 @@ export default defineEventHandler(async (event) => {
     if (body.data.startDate !== undefined) updateData.company_start_date = body.data.startDate || null
     if (body.data.employmentType !== undefined) updateData.company_employment_type = body.data.employmentType
     if (body.data.employeeId !== undefined) updateData.company_employee_id = body.data.employeeId
+
+    // Debug: Log what we're about to save
+    console.log('Onboarding SAVE - Update data being saved:', {
+      personal_nationality: updateData.personal_nationality,
+      emergency_contact_name: updateData.emergency_contact_name,
+      emergency_contact_phone: updateData.emergency_contact_phone,
+      emergency_contact_relationship: updateData.emergency_contact_relationship
+    })
 
     // Update user
     await tenantDb

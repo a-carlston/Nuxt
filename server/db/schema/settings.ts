@@ -5,6 +5,7 @@ import {
   boolean,
   integer,
   timestamp,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { coreUsers } from './core';
@@ -82,6 +83,13 @@ export const settingsCompany = pgTable('settings_company', {
   // Session and MFA settings
   config_session_timeout_minutes: integer('config_session_timeout_minutes').notNull().default(30),
   config_mfa_required: boolean('config_mfa_required').notNull().default(false),
+
+  // --------------------------------------------------------------------------
+  // config_column_labels - Company-level column label overrides
+  // --------------------------------------------------------------------------
+  // Structure: { [tableId]: { [columnId]: { label: string } } }
+  // Example: { "directory": { "firstName": { "label": "Given Name" }, "lastName": { "label": "Family Name" } } }
+  config_column_labels: jsonb('config_column_labels').$type<Record<string, Record<string, { label: string }>>>(),
 });
 
 // =============================================================================
@@ -120,6 +128,11 @@ export const settingsUser = pgTable('settings_user', {
   notif_email: boolean('notif_email').notNull().default(true),
   notif_push: boolean('notif_push').notNull().default(true),
   notif_sms: boolean('notif_sms').notNull().default(false),
+
+  // --------------------------------------------------------------------------
+  // ui_ - User interface preferences (Self access level)
+  // --------------------------------------------------------------------------
+  ui_directory_columns: jsonb('ui_directory_columns'), // { visible: string[], order: string[] }
 });
 
 // =============================================================================
@@ -154,4 +167,20 @@ export interface AssignmentModes {
   department: AssignmentMode;
   division: AssignmentMode;
   lob: AssignmentMode;
+}
+
+// =============================================================================
+// COLUMN LABEL OVERRIDE TYPES
+// =============================================================================
+
+export interface ColumnLabelOverride {
+  label: string;
+}
+
+export interface TableColumnLabels {
+  [columnId: string]: ColumnLabelOverride;
+}
+
+export interface CompanyColumnLabels {
+  [tableId: string]: TableColumnLabels;
 }

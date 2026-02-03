@@ -110,6 +110,7 @@ export default defineEventHandler(async (event) => {
           .where(eq(settingsUser.ref_user_id, body.userId))
       } else {
         // Insert new settings record
+        // Use ON CONFLICT to handle race conditions and ensure upsert behavior
         await tenantDb
           .insert(settingsUser)
           .values({
@@ -117,14 +118,67 @@ export default defineEventHandler(async (event) => {
             ui_directory_columns: body.preferences.directoryColumns || null,
             meta_updated_at: now
           })
+          .onConflictDoUpdate({
+            target: settingsUser.ref_user_id,
+            set: {
+              ui_directory_columns: body.preferences.directoryColumns || null,
+              meta_updated_at: now
+            }
+          })
       }
+
+      // Verify the save by reading back the data
+      const [verifyResult] = await tenantDb
+        .select({ ui_directory_columns: settingsUser.ui_directory_columns })
+        .from(settingsUser)
+        .where(eq(settingsUser.ref_user_id, body.userId))
+        .limit(1)
     } catch (dbError: any) {
-      // Table might not exist yet - silently fail but log warning
-      console.warn('settings_user table may not exist, skipping preferences save:', dbError.message)
-      return {
-        success: false,
-        message: 'Preferences table not available'
+      // Log full error details for debugging
+      console.error('[preferences.post] Database error:', {
+        message: dbError.message,
+        code: dbError.code,
+        detail: dbError.detail,
+        constraint: dbError.constraint,
+        stack: dbError.stack
+      })
+
+      const errorMessage = dbError.message || ''
+      const errorCode = dbError.code || ''
+
+      // Foreign key violation - user doesn't exist in core_users
+      if (errorMessage.includes('foreign key') || errorMessage.includes('violates foreign key') || errorCode === '23503') {
+        console.warn('[preferences.post] User not found in core_users:', body.userId)
+        return {
+          success: false,
+          message: 'User not found'
+        }
       }
+
+      // Table doesn't exist
+      if (errorMessage.includes('does not exist') || errorMessage.includes('relation') || errorCode === '42P01') {
+        console.warn('[preferences.post] settings_user table may not exist:', errorMessage)
+        return {
+          success: false,
+          message: 'Preferences table not available'
+        }
+      }
+
+      // NOT NULL violation
+      if (errorCode === '23502') {
+        console.error('[preferences.post] NOT NULL constraint violation:', dbError.detail)
+        return {
+          success: false,
+          message: 'Missing required field'
+        }
+      }
+
+      // Unknown error - log and rethrow
+      console.error('[preferences.post] Unknown database error:', dbError)
+      throw createError({
+        statusCode: 500,
+        message: `Failed to save user preferences: ${errorMessage}`
+      })
     }
 
     return {

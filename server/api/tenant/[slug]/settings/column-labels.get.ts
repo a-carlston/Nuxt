@@ -1,32 +1,18 @@
 import { eq } from 'drizzle-orm'
-import { useParentDb, useTenantDb, parentSchema, settingsUser } from '../../../../db'
+import { useParentDb, useTenantDb, parentSchema, settingsCompany } from '../../../../db'
 
-// Type for directory columns preferences
-interface DirectoryColumnsPreferences {
-  visible: string[]
-  order: string[]
-}
-
-interface UserPreferences {
-  directoryColumns: DirectoryColumnsPreferences
-}
+// Type for column labels structure
+type ColumnLabels = Record<string, Record<string, { label: string }>>
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
   const query = getQuery(event)
-  const userId = query.userId as string
+  const tableId = query.tableId as string | undefined
 
   if (!slug) {
     throw createError({
       statusCode: 400,
       message: 'Slug is required'
-    })
-  }
-
-  if (!userId) {
-    throw createError({
-      statusCode: 400,
-      message: 'userId query parameter is required'
     })
   }
 
@@ -67,41 +53,38 @@ export default defineEventHandler(async (event) => {
     // Connect to tenant database
     const tenantDb = useTenantDb(tenant.connectionString)
 
-    // Fetch user preferences - handle case where table doesn't exist yet
-    let userSettings = null
+    // Fetch company settings - handle case where table doesn't exist yet
+    let companySettings = null
     try {
       const result = await tenantDb
         .select({
-          directoryColumns: settingsUser.ui_directory_columns
+          columnLabels: settingsCompany.config_column_labels
         })
-        .from(settingsUser)
-        .where(eq(settingsUser.ref_user_id, userId))
+        .from(settingsCompany)
         .limit(1)
-      userSettings = result[0] || null
+      companySettings = result[0] || null
     } catch (dbError: any) {
-      // Table might not exist yet - return defaults
-      console.warn('[preferences.get] settings_user table may not exist:', dbError.message)
+      // Table might not exist yet - return empty labels
+      console.warn('settings_company table may not exist:', dbError.message)
     }
 
-    // Build preferences object with defaults if not found
-    const preferences: UserPreferences = {
-      directoryColumns: (userSettings?.directoryColumns as DirectoryColumnsPreferences) || {
-        visible: [],
-        order: []
-      }
-    }
+    // Get all column labels or filter by tableId
+    const allLabels = (companySettings?.columnLabels as ColumnLabels) || {}
+
+    // If tableId is specified, return only labels for that table
+    const labels = tableId ? (allLabels[tableId] || {}) : allLabels
 
     return {
       success: true,
-      preferences
+      labels
     }
   } catch (error: any) {
     if (error.statusCode) throw error
 
-    console.error('Error fetching user preferences:', error)
+    console.error('Error fetching column labels:', error)
     throw createError({
       statusCode: 500,
-      message: 'Failed to fetch user preferences'
+      message: 'Failed to fetch column labels'
     })
   }
 })

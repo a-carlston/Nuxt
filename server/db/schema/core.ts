@@ -72,7 +72,7 @@ export const coreUsers = pgTable(
     personal_avatar_url: varchar('personal_avatar_url', { length: 500 }),
     personal_date_of_birth: date('personal_date_of_birth'),
     personal_gender: varchar('personal_gender', { length: 20 }),
-    personal_nationality: varchar('personal_nationality', { length: 10 }),
+    personal_nationality: varchar('personal_nationality', { length: 50 }),
     personal_ssn: varchar('personal_ssn', { length: 50 }), // Encrypted at app level
 
     // personal_address_

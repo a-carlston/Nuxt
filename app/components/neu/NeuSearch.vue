@@ -56,9 +56,9 @@ const enabledOptions = computed(() => {
 })
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2.5 text-base',
-  lg: 'px-5 py-3 text-lg'
+  sm: 'px-3 py-1.5 text-xs',   // ~30px - compact
+  md: 'px-3 py-2 text-sm',     // ~38px - standard
+  lg: 'px-4 py-2.5 text-base'  // ~44px - large
 }
 
 const iconSizeClasses = {
@@ -196,7 +196,7 @@ watch(searchQuery, (val) => {
     </label>
     <div
       :class="[
-        'neu-search-input relative flex items-center rounded-xl transition-all duration-200',
+        'neu-search-input relative flex items-center rounded-lg transition-all duration-200',
         'bg-[var(--neu-bg)]',
         {
           'is-open': isOpen,
@@ -292,7 +292,7 @@ watch(searchQuery, (val) => {
     >
       <div
         v-if="isOpen && filteredOptions.length > 0"
-        class="neu-dropdown absolute z-50 mt-2 w-full rounded-xl bg-[var(--neu-bg)] p-2 max-h-60 overflow-auto neu-scrollbar space-y-1"
+        class="neu-dropdown absolute z-50 mt-2 w-full rounded-lg bg-[var(--neu-bg)] p-2 max-h-60 overflow-auto neu-scrollbar space-y-1"
       >
         <button
           v-for="option in filteredOptions"
@@ -326,7 +326,7 @@ watch(searchQuery, (val) => {
     >
       <div
         v-if="isOpen && searchQuery && filteredOptions.length === 0"
-        class="neu-dropdown absolute z-50 mt-2 w-full rounded-xl bg-[var(--neu-bg)] p-4 text-center text-[var(--neu-text-muted)]"
+        class="neu-dropdown absolute z-50 mt-2 w-full rounded-lg bg-[var(--neu-bg)] p-4 text-center text-[var(--neu-text-muted)]"
       >
         No results found
       </div>

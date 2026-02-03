@@ -26,9 +26,9 @@ const emit = defineEmits<{
 }>()
 
 const sizeClasses = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2.5 text-base',
-  lg: 'px-5 py-3 text-lg'
+  sm: 'px-3 py-1.5 text-xs',   // ~30px - compact
+  md: 'px-3 py-2 text-sm',     // ~38px - standard (industry default)
+  lg: 'px-4 py-2.5 text-base'  // ~44px - large
 }
 
 function handleInput(e: Event) {
