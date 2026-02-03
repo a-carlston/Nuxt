@@ -23,8 +23,8 @@ html[data-theme="dark"], html[data-theme="dark"] body {
 /* Light mode fallback */
 html:not(.dark):not([data-theme="dark"]),
 html:not(.dark):not([data-theme="dark"]) body {
-  background: #e0e5ec;
-  background: var(--neu-bg, #e0e5ec);
+  background: #c8ced8;
+  background: var(--neu-bg, #c8ced8);
 }
 
 
@@ -44,8 +44,8 @@ html:not(.dark):not([data-theme="dark"]) body {
 }
 
 html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
-  background: #e0e5ec;
-  background: var(--neu-bg, #e0e5ec);
+  background: #c8ced8;
+  background: var(--neu-bg, #c8ced8);
 }
 
 .skeleton-overlay.hidden {
@@ -292,15 +292,15 @@ html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
 /* Corporate Palette - Light */
 :root,
 [data-theme="light"][data-palette="corporate"] {
-  --neu-bg: #e0e5ec;
-  --neu-bg-gradient: linear-gradient(145deg, #f0f5fc, #ccd4de);
-  --neu-bg-secondary: #d1d9e6;
-  --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #8a9bb4;
+  --neu-bg: #c8ced8;
+  --neu-bg-gradient: linear-gradient(145deg, #dce2ec, #b4bcc8);
+  --neu-bg-secondary: #bcc4d0;
+  --neu-shadow-light: #f5f8ff;
+  --neu-shadow-dark: #6a7a90;
   --neu-primary: #4a90d9;
   --neu-primary-hover: #3a7bc8;
   --neu-text: #2d3748;
-  --neu-text-muted: #718096;
+  --neu-text-muted: #5a6878;
   --neu-success: #48bb78;
   --neu-warning: #ed8936;
   --neu-danger: #f56565;
@@ -324,15 +324,15 @@ html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
 
 /* Lava Palette - Light */
 [data-theme="light"][data-palette="lava"] {
-  --neu-bg: #f0e6e6;
-  --neu-bg-gradient: linear-gradient(145deg, #fff0f0, #e0d0d0);
-  --neu-bg-secondary: #e8dada;
-  --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #b8a0a0;
+  --neu-bg: #d8c8c8;
+  --neu-bg-gradient: linear-gradient(145deg, #e8d8d8, #c8b8b8);
+  --neu-bg-secondary: #ccbcbc;
+  --neu-shadow-light: #fff5f5;
+  --neu-shadow-dark: #806060;
   --neu-primary: #ff4d4d;
   --neu-primary-hover: #e63939;
   --neu-text: #3d2828;
-  --neu-text-muted: #8b6f6f;
+  --neu-text-muted: #6a5050;
   --neu-success: #4ade80;
   --neu-warning: #fbbf24;
   --neu-danger: #ef4444;
@@ -356,17 +356,17 @@ html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
 
 /* Dracula Palette - Light */
 [data-theme="light"][data-palette="dracula"] {
-  --neu-bg: #f0f0f5;
-  --neu-bg-gradient: linear-gradient(145deg, #fafaff, #e0e0e8);
-  --neu-bg-secondary: #e4e4ed;
-  --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #a8a8be;
+  --neu-bg: #d0d0dc;
+  --neu-bg-gradient: linear-gradient(145deg, #e0e0ec, #c0c0cc);
+  --neu-bg-secondary: #c4c4d0;
+  --neu-shadow-light: #f5f5ff;
+  --neu-shadow-dark: #707088;
   --neu-primary: #bd93f9;
   --neu-primary-hover: #a87de8;
   --neu-text: #282a36;
-  --neu-text-muted: #6272a4;
+  --neu-text-muted: #505878;
   --neu-success: #50fa7b;
-  --neu-warning: #f1fa8c;
+  --neu-warning: #d4b020;
   --neu-danger: #ff5555;
 }
 
@@ -388,15 +388,15 @@ html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
 
 /* Ocean Palette - Light */
 [data-theme="light"][data-palette="ocean"] {
-  --neu-bg: #e6f0f5;
-  --neu-bg-gradient: linear-gradient(145deg, #f0faff, #d0e0e8);
-  --neu-bg-secondary: #d6e6ed;
-  --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #9ab8c6;
+  --neu-bg: #c8d8e0;
+  --neu-bg-gradient: linear-gradient(145deg, #d8e8f0, #b8c8d0);
+  --neu-bg-secondary: #bcccd4;
+  --neu-shadow-light: #f0faff;
+  --neu-shadow-dark: #607888;
   --neu-primary: #00bcd4;
   --neu-primary-hover: #00a5bb;
   --neu-text: #1a3a4a;
-  --neu-text-muted: #5a7a8a;
+  --neu-text-muted: #486070;
   --neu-success: #26a69a;
   --neu-warning: #ffb74d;
   --neu-danger: #ef5350;
@@ -420,15 +420,15 @@ html:not(.dark):not([data-theme="dark"]) .skeleton-overlay {
 
 /* Forest Palette - Light */
 [data-theme="light"][data-palette="forest"] {
-  --neu-bg: #e6f0e6;
-  --neu-bg-gradient: linear-gradient(145deg, #f0fff0, #d0e0d0);
-  --neu-bg-secondary: #d4e6d4;
-  --neu-shadow-light: #ffffff;
-  --neu-shadow-dark: #9ab89a;
+  --neu-bg: #c8d8c8;
+  --neu-bg-gradient: linear-gradient(145deg, #d8e8d8, #b8c8b8);
+  --neu-bg-secondary: #bccabc;
+  --neu-shadow-light: #f0fff0;
+  --neu-shadow-dark: #607860;
   --neu-primary: #4caf50;
   --neu-primary-hover: #43a047;
   --neu-text: #1a3a1a;
-  --neu-text-muted: #5a7a5a;
+  --neu-text-muted: #486048;
   --neu-success: #66bb6a;
   --neu-warning: #ffca28;
   --neu-danger: #ef5350;

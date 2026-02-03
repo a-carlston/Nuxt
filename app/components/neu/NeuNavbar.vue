@@ -11,10 +11,12 @@ interface NavItem {
 interface Props {
   items?: NavItem[]
   activeItem?: string
+  expanded?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  items: () => []
+  items: () => [],
+  expanded: false
 })
 
 const emit = defineEmits<{
@@ -84,7 +86,7 @@ onUnmounted(() => {
       class="neu-navbar fixed top-0 left-0 right-0 z-50 transition-transform duration-300"
       :class="{ 'nav-hidden': isHidden && !isForceOpen }"
     >
-      <div class="max-w-7xl mx-auto px-6 py-4">
+      <div :class="[expanded ? 'w-full px-8' : 'max-w-7xl mx-auto px-6', 'py-4']">
         <div class="flex items-center justify-between">
           <!-- Logo -->
           <div class="flex items-center gap-4">
@@ -161,7 +163,7 @@ onUnmounted(() => {
 <style scoped>
 .neu-navbar {
   background: var(--neu-bg);
-  box-shadow: var(--neu-shadow-flat);
+  box-shadow: 0 4px 8px var(--neu-shadow-dark);
   border-radius: 0 0 3rem 3rem;
 }
 

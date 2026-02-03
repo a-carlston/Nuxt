@@ -9,11 +9,18 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
+      style: [
+        {
+          // Critical inline CSS - use system preference as default, then data-theme overrides
+          innerHTML: `html,body{margin:0;background:#c8ced8}@media(prefers-color-scheme:dark){html,body{background:#2a2f3a}}html[data-theme="light"],html[data-theme="light"] body{background:#c8ced8}html[data-theme="dark"],html[data-theme="dark"] body{background:#2a2f3a}`
+        }
+      ],
       script: [
         {
           // Blocking script to prevent theme flash - runs before anything renders
-          innerHTML: `(function(){try{var t=localStorage.getItem('neu-theme')||document.cookie.match(/neu-theme=([^;]+)/)?.[1];var p=localStorage.getItem('neu-palette')||document.cookie.match(/neu-palette=([^;]+)/)?.[1]||'corporate';var d=document.documentElement;if(t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){d.classList.add('dark');d.setAttribute('data-theme','dark')}else{d.setAttribute('data-theme','light')}d.setAttribute('data-palette',p)}catch(e){}})()`,
-          type: 'text/javascript'
+          innerHTML: `(function(){try{var t=localStorage.getItem('neu-theme-mode')||document.cookie.match(/neu-theme=([^;]+)/)?.[1];var p=localStorage.getItem('neu-color-palette')||document.cookie.match(/neu-palette=([^;]+)/)?.[1]||'corporate';var d=document.documentElement;if(t==='dark'||(t==='system'||!t)&&window.matchMedia('(prefers-color-scheme:dark)').matches){d.classList.add('dark');d.setAttribute('data-theme','dark')}else{d.classList.remove('dark');d.setAttribute('data-theme','light')}d.setAttribute('data-palette',p)}catch(e){}})()`,
+          type: 'text/javascript',
+          tagPosition: 'head'
         }
       ]
     }

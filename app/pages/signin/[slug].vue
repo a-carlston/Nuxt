@@ -153,7 +153,7 @@ const userInitials = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen neu-bg flex flex-col">
+  <div class="min-h-screen bg-[var(--neu-bg)] flex flex-col">
     <!-- Header -->
     <header class="p-4 sm:p-6">
       <NuxtLink to="/find-domain" class="flex items-center gap-2 text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] transition-colors w-fit">
@@ -168,13 +168,13 @@ const userInitials = computed(() => {
     <main class="flex-1 flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <!-- Loading State -->
-        <div v-if="isLoadingTenant" class="neu-card rounded-2xl p-8 text-center">
+        <NeuCard v-if="isLoadingTenant" padding="lg" class="text-center">
           <div class="w-12 h-12 mx-auto mb-4 rounded-full border-4 border-[var(--neu-primary)]/20 border-t-[var(--neu-primary)] animate-spin" />
           <p class="text-[var(--neu-text-muted)]">Loading workspace...</p>
-        </div>
+        </NeuCard>
 
         <!-- Error State -->
-        <div v-else-if="tenantError" class="neu-card rounded-2xl p-8 text-center">
+        <NeuCard v-else-if="tenantError" padding="lg" class="text-center">
           <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <svg class="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -187,21 +187,20 @@ const userInitials = computed(() => {
           <NuxtLink to="/signin">
             <NeuButton variant="primary">Try another workspace</NeuButton>
           </NuxtLink>
-        </div>
+        </NeuCard>
 
         <!-- Sign In Card -->
-        <div v-else class="neu-card rounded-2xl p-6 sm:p-8">
+        <NeuCard v-else padding="lg">
           <!-- Company Branding -->
           <div class="flex flex-col items-center mb-6">
             <!-- Company Logo -->
-            <div v-if="tenant?.logoUrl" class="w-20 h-20 rounded-2xl overflow-hidden mb-4 neu-flat">
-              <img :src="tenant.logoUrl" :alt="tenant.companyName" class="w-full h-full object-cover" />
-            </div>
-            <div v-else class="w-20 h-20 rounded-2xl mb-4 neu-flat flex items-center justify-center bg-gradient-to-br from-[var(--neu-primary)] to-[var(--neu-primary-dark)]">
-              <span class="text-2xl font-bold text-white">
-                {{ tenant?.companyName?.substring(0, 2).toUpperCase() || 'CO' }}
-              </span>
-            </div>
+            <NeuAvatar
+              :src="tenant?.logoUrl || undefined"
+              :initials="tenant?.companyName?.substring(0, 2).toUpperCase() || 'CO'"
+              :alt="tenant?.companyName || 'Company'"
+              size="xl"
+              class="mb-4"
+            />
 
             <!-- Company Name or Custom Header -->
             <div v-if="tenant?.useCustomHeader && tenant?.headerImageUrl" class="h-8 mb-2">
@@ -229,12 +228,12 @@ const userInitials = computed(() => {
             <div v-if="step === 'email'" key="email" class="space-y-4">
               <div>
                 <label class="block text-sm font-medium text-[var(--neu-text)] mb-2">Email address</label>
-                <div class="neu-inset rounded-xl overflow-hidden">
+                <div class="neu-input rounded-xl overflow-hidden">
                   <input
                     v-model="email"
                     type="email"
                     placeholder="you@company.com"
-                    class="w-full px-4 py-3 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
+                    class="w-full px-4 py-2 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
                     @keydown="handleKeydown"
                   />
                 </div>
@@ -268,7 +267,7 @@ const userInitials = computed(() => {
             <!-- Password Step -->
             <div v-else key="password" class="space-y-4">
               <!-- User Info Card -->
-              <div class="neu-user-card flex items-center gap-4 p-4 rounded-2xl">
+              <NeuCard variant="flat" padding="sm" class="flex items-center gap-4">
                 <button
                   type="button"
                   class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] hover:bg-[var(--neu-shadow-light)] transition-all"
@@ -278,29 +277,29 @@ const userInitials = computed(() => {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <div v-if="user?.avatarUrl" class="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-[var(--neu-primary)]/30">
-                  <img :src="user.avatarUrl" :alt="user.firstName" class="w-full h-full object-cover" />
-                </div>
-                <div v-else class="w-12 h-12 rounded-full flex-shrink-0 bg-gradient-to-br from-[var(--neu-primary)] to-[var(--neu-primary-dark)] flex items-center justify-center ring-2 ring-[var(--neu-primary)]/30">
-                  <span class="text-base font-semibold text-white">{{ userInitials }}</span>
-                </div>
+                <NeuAvatar
+                  :src="user?.avatarUrl || undefined"
+                  :initials="userInitials"
+                  :alt="user?.firstName || 'User'"
+                  size="lg"
+                />
                 <div class="flex-1 min-w-0">
                   <p class="text-base font-semibold text-[var(--neu-text)] truncate">
                     {{ user?.firstName }} {{ user?.lastName }}
                   </p>
                   <p class="text-sm text-[var(--neu-text-muted)] truncate">{{ user?.email }}</p>
                 </div>
-              </div>
+              </NeuCard>
 
               <!-- Password Input -->
               <div>
                 <label class="block text-sm font-medium text-[var(--neu-text)] mb-2">Password</label>
-                <div class="neu-inset rounded-xl overflow-hidden flex items-center">
+                <div class="neu-input rounded-xl overflow-hidden flex items-center">
                   <input
                     v-model="password"
                     :type="showPassword ? 'text' : 'password'"
                     placeholder="Enter your password"
-                    class="flex-1 px-4 py-3 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
+                    class="flex-1 px-4 py-2 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
                     @keydown="handleKeydown"
                   />
                   <button
@@ -357,38 +356,8 @@ const userInitials = computed(() => {
               Need access? Contact your administrator
             </p>
           </div>
-        </div>
+        </NeuCard>
       </div>
     </main>
   </div>
 </template>
-
-<style scoped>
-.neu-bg {
-  background: var(--neu-bg);
-}
-
-.neu-card {
-  background: var(--neu-bg);
-  box-shadow: var(--neu-shadow-raised);
-}
-
-.neu-flat {
-  background: var(--neu-bg);
-  box-shadow: var(--neu-shadow-flat);
-}
-
-.neu-inset {
-  background: var(--neu-bg);
-  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark), inset -2px -2px 4px var(--neu-shadow-light);
-}
-
-.neu-user-card {
-  background: linear-gradient(145deg, var(--neu-bg), var(--neu-bg-secondary));
-  box-shadow:
-    4px 4px 8px var(--neu-shadow-dark),
-    -2px -2px 6px var(--neu-shadow-light),
-    inset 1px 1px 2px var(--neu-shadow-light);
-  border: 1px solid var(--neu-shadow-light);
-}
-</style>

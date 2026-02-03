@@ -55,6 +55,7 @@ export default defineEventHandler(async (event) => {
         const [settings] = await tenantDb
           .select({
             companyName: settingsCompany.info_company_name,
+            tagline: settingsCompany.info_tagline,
             logoUrl: settingsCompany.brand_logo_url,
             headerImageUrl: settingsCompany.brand_header_image_url,
             useCustomHeader: settingsCompany.brand_use_custom_header
@@ -75,6 +76,7 @@ export default defineEventHandler(async (event) => {
         id: tenant.id,
         companyName: companySettings?.companyName || tenant.companyName,
         companySlug: tenant.companySlug,
+        tagline: companySettings?.tagline || null,
         logoUrl: companySettings?.logoUrl || tenant.logoUrl,
         headerImageUrl: companySettings?.headerImageUrl || null,
         useCustomHeader: companySettings?.useCustomHeader || false,

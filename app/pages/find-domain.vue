@@ -47,13 +47,15 @@ function handleKeydown(e: KeyboardEvent) {
 </script>
 
 <template>
-  <div class="min-h-screen neu-bg flex flex-col">
+  <div class="min-h-screen bg-[var(--neu-bg)] flex flex-col">
     <!-- Header -->
     <header class="p-4 sm:p-6">
       <NuxtLink to="/" class="flex items-center gap-2 w-fit">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--neu-primary)] to-[var(--neu-primary-dark)] flex items-center justify-center">
-          <span class="text-white font-bold text-sm">O</span>
-        </div>
+        <NeuAvatar
+          initials="O"
+          size="sm"
+          class="bg-gradient-to-br from-[var(--neu-primary)] to-[var(--neu-primary-dark)]"
+        />
         <span class="text-lg font-semibold text-[var(--neu-text)]">Optivo</span>
       </NuxtLink>
     </header>
@@ -62,14 +64,14 @@ function handleKeydown(e: KeyboardEvent) {
     <main class="flex-1 flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <!-- Card -->
-        <div class="neu-card rounded-2xl p-6 sm:p-8">
+        <NeuCard padding="lg">
           <!-- Icon -->
           <div class="flex justify-center mb-6">
-            <div class="w-16 h-16 rounded-2xl neu-flat flex items-center justify-center">
+            <NeuCard variant="flat" padding="none" class="w-16 h-16 flex items-center justify-center">
               <svg class="w-8 h-8 text-[var(--neu-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-            </div>
+            </NeuCard>
           </div>
 
           <!-- Title -->
@@ -84,8 +86,8 @@ function handleKeydown(e: KeyboardEvent) {
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-[var(--neu-text)] mb-2">Company URL</label>
-              <div class="neu-inset flex items-center rounded-xl overflow-hidden">
-                <span class="pl-4 pr-1 py-3 text-sm text-[var(--neu-text-muted)] select-none">
+              <div class="neu-input flex items-center rounded-xl overflow-hidden">
+                <span class="pl-4 pr-1 py-2 text-sm text-[var(--neu-text-muted)] select-none">
                   optivo.app/
                 </span>
                 <input
@@ -93,7 +95,7 @@ function handleKeydown(e: KeyboardEvent) {
                   v-model="slug"
                   type="text"
                   placeholder="your-company"
-                  class="flex-1 pl-0 pr-4 py-3 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
+                  class="flex-1 pl-0 pr-4 py-2 bg-transparent text-[var(--neu-text)] placeholder-[var(--neu-text-muted)]/50 focus:outline-none"
                   @keydown="handleKeydown"
                 />
               </div>
@@ -139,7 +141,7 @@ function handleKeydown(e: KeyboardEvent) {
               Create one
             </NuxtLink>
           </p>
-        </div>
+        </NeuCard>
 
         <!-- Help Link -->
         <p class="text-xs text-center text-[var(--neu-text-muted)] mt-6">
@@ -150,24 +152,3 @@ function handleKeydown(e: KeyboardEvent) {
     </main>
   </div>
 </template>
-
-<style scoped>
-.neu-bg {
-  background: var(--neu-bg);
-}
-
-.neu-card {
-  background: var(--neu-bg);
-  box-shadow: var(--neu-shadow-raised);
-}
-
-.neu-flat {
-  background: var(--neu-bg);
-  box-shadow: var(--neu-shadow-flat);
-}
-
-.neu-inset {
-  background: var(--neu-bg);
-  box-shadow: inset 2px 2px 4px var(--neu-shadow-dark), inset -2px -2px 4px var(--neu-shadow-light);
-}
-</style>
