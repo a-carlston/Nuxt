@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, watch } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 
 interface Option {
   label: string
@@ -36,7 +36,9 @@ const isOpen = ref(false)
 const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const triggerRef = ref<HTMLButtonElement | null>(null)
+const dropdownRef = ref<HTMLElement | null>(null)
 const highlightedIndex = ref(-1)
+const position = ref({ top: 0, left: 0, width: 0 })
 
 const selectedOption = computed(() => {
   return props.options.find((opt) => opt.value === props.modelValue)
@@ -67,17 +69,41 @@ watch(filteredOptions, () => {
   highlightedIndex.value = -1
 })
 
+function updatePosition() {
+  if (!triggerRef.value) return
+
+  const rect = triggerRef.value.getBoundingClientRect()
+  const viewportWidth = window.innerWidth
+
+  // Use viewport coordinates for fixed positioning (no scroll offset needed)
+  let left = rect.left
+  const width = rect.width
+
+  // Clamp to viewport to prevent overflow
+  if (left + width > viewportWidth - 8) {
+    left = viewportWidth - width - 8
+  }
+  left = Math.max(8, left)
+
+  position.value = {
+    top: rect.bottom + 8,
+    left,
+    width
+  }
+}
+
 function toggleDropdown() {
   if (!props.disabled) {
     isOpen.value = !isOpen.value
     if (isOpen.value) {
       highlightedIndex.value = -1
-      if (props.searchable) {
-        searchQuery.value = ''
-        nextTick(() => {
+      nextTick(() => {
+        updatePosition()
+        if (props.searchable) {
+          searchQuery.value = ''
           searchInputRef.value?.focus()
-        })
-      }
+        }
+      })
     }
   }
 }
@@ -86,12 +112,13 @@ function openDropdown() {
   if (!props.disabled && !isOpen.value) {
     isOpen.value = true
     highlightedIndex.value = -1
-    if (props.searchable) {
-      searchQuery.value = ''
-      nextTick(() => {
+    nextTick(() => {
+      updatePosition()
+      if (props.searchable) {
+        searchQuery.value = ''
         searchInputRef.value?.focus()
-      })
-    }
+      }
+    })
   }
 }
 
@@ -141,7 +168,7 @@ function highlightPrev() {
 
 function scrollToHighlighted() {
   nextTick(() => {
-    const highlighted = document.querySelector('.neu-option.is-highlighted')
+    const highlighted = dropdownRef.value?.querySelector('.neu-option.is-highlighted')
     highlighted?.scrollIntoView({ block: 'nearest' })
   })
 }
@@ -183,11 +210,36 @@ function handleKeydown(e: KeyboardEvent) {
 function getOptionIndex(option: Option): number {
   return enabledOptions.value.findIndex(opt => opt.value === option.value)
 }
+
+function handleClickOutside(e: MouseEvent) {
+  if (!isOpen.value) return
+  const target = e.target as HTMLElement
+  if (triggerRef.value?.contains(target)) return
+  if (dropdownRef.value?.contains(target)) return
+  closeDropdown()
+}
+
+function handleScroll() {
+  if (isOpen.value) {
+    updatePosition()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  window.addEventListener('scroll', handleScroll, true)
+  window.addEventListener('resize', updatePosition)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('scroll', handleScroll, true)
+  window.removeEventListener('resize', updatePosition)
+})
 </script>
 
 <template>
   <div
-    v-click-outside="closeDropdown"
     class="relative w-full"
     @keydown="handleKeydown"
   >
@@ -213,13 +265,13 @@ function getOptionIndex(option: Option): number {
       ]"
       @click="toggleDropdown"
     >
-      <div class="flex items-center justify-between">
-        <span :class="selectedOption ? 'text-[var(--neu-text)]' : 'text-[var(--neu-text-muted)]'">
+      <div class="flex items-center justify-between gap-2">
+        <span class="truncate" :class="selectedOption ? 'text-[var(--neu-text)]' : 'text-[var(--neu-text-muted)]'">
           {{ selectedOption?.label || placeholder }}
         </span>
         <svg
           :class="[
-            'w-5 h-5 text-[var(--neu-text-muted)] transition-transform duration-200',
+            'w-4 h-4 flex-shrink-0 text-[var(--neu-text-muted)] transition-transform duration-200',
             { 'rotate-180': isOpen }
           ]"
           fill="none"
@@ -236,59 +288,73 @@ function getOptionIndex(option: Option): number {
       </div>
     </button>
 
-    <Transition
-      enter-active-class="transition duration-200 ease-out"
-      enter-from-class="opacity-0 translate-y-1"
-      enter-to-class="opacity-100 translate-y-0"
-      leave-active-class="transition duration-150 ease-in"
-      leave-from-class="opacity-100 translate-y-0"
-      leave-to-class="opacity-0 translate-y-1"
-    >
-      <div
-        v-if="isOpen"
-        class="neu-dropdown absolute z-50 mt-2 w-full rounded-xl bg-[var(--neu-bg)] p-2"
+    <!-- Teleport dropdown to body to escape overflow clipping -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
       >
-        <!-- Search Input -->
-        <div v-if="searchable" class="mb-2">
-          <input
-            ref="searchInputRef"
-            v-model="searchQuery"
-            type="text"
-            :placeholder="searchPlaceholder"
-            class="neu-search-input w-full px-3 py-2 rounded-lg text-sm bg-[var(--neu-bg-secondary)] text-[var(--neu-text)] placeholder-[var(--neu-text-muted)] outline-none"
-            @click.stop
-          />
-        </div>
+        <div
+          v-if="isOpen"
+          ref="dropdownRef"
+          class="fixed z-[9999]"
+          :style="{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            width: `${position.width}px`,
+            minWidth: '120px'
+          }"
+        >
+          <NeuCard variant="flat" padding="none" class="shadow-lg">
+            <div class="p-2">
+              <!-- Search Input -->
+              <div v-if="searchable" class="mb-2">
+                <input
+                  ref="searchInputRef"
+                  v-model="searchQuery"
+                  type="text"
+                  :placeholder="searchPlaceholder"
+                  class="neu-search-input w-full px-3 py-2 rounded-lg text-sm bg-[var(--neu-bg-secondary)] text-[var(--neu-text)] placeholder-[var(--neu-text-muted)] outline-none"
+                  @click.stop
+                />
+              </div>
 
-        <!-- Options List -->
-        <div class="max-h-48 overflow-auto neu-scrollbar space-y-1">
-          <button
-            v-for="option in filteredOptions"
-            :key="option.value"
-            type="button"
-            :disabled="option.disabled"
-            :class="[
-              'neu-option w-full px-3 py-2 text-left rounded-lg transition-all duration-150',
-              {
-                'is-selected': option.value === modelValue,
-                'is-highlighted': getOptionIndex(option) === highlightedIndex && !option.disabled,
-                'opacity-50 cursor-not-allowed': option.disabled
-              }
-            ]"
-            @click="selectOption(option)"
-            @mouseenter="highlightedIndex = getOptionIndex(option)"
-          >
-            {{ option.label }}
-          </button>
-          <div
-            v-if="filteredOptions.length === 0"
-            class="px-3 py-2 text-sm text-[var(--neu-text-muted)] text-center"
-          >
-            No results found
-          </div>
+              <!-- Options List -->
+              <div class="max-h-48 overflow-auto neu-scrollbar space-y-1">
+                <button
+                  v-for="option in filteredOptions"
+                  :key="option.value"
+                  type="button"
+                  :disabled="option.disabled"
+                  :class="[
+                    'neu-option w-full px-3 py-2 text-left rounded-lg transition-all duration-150',
+                    {
+                      'is-selected': option.value === modelValue,
+                      'is-highlighted': getOptionIndex(option) === highlightedIndex && !option.disabled,
+                      'opacity-50 cursor-not-allowed': option.disabled
+                    }
+                  ]"
+                  @click="selectOption(option)"
+                  @mouseenter="highlightedIndex = getOptionIndex(option)"
+                >
+                  {{ option.label }}
+                </button>
+                <div
+                  v-if="filteredOptions.length === 0"
+                  class="px-3 py-2 text-sm text-[var(--neu-text-muted)] text-center"
+                >
+                  No results found
+                </div>
+              </div>
+            </div>
+          </NeuCard>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
 
     <p
       v-if="error"
@@ -310,10 +376,6 @@ function getOptionIndex(option: Option): number {
 
 .neu-select-trigger.has-error {
   ring: 2px solid var(--neu-danger);
-}
-
-.neu-dropdown {
-  box-shadow: var(--neu-shadow-flat);
 }
 
 .neu-search-input {

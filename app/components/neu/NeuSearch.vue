@@ -343,10 +343,6 @@ watch(searchQuery, (val) => {
 
 <style scoped>
 .neu-search-input {
-  box-shadow: var(--neu-shadow-flat);
-}
-
-.neu-search-input.is-open {
   box-shadow: var(--neu-shadow-pressed);
 }
 
