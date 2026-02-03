@@ -9,6 +9,8 @@ interface DirectoryColumnsPreferences {
 
 interface UserPreferences {
   directoryColumns?: DirectoryColumnsPreferences
+  theme?: string
+  colorPalette?: string
 }
 
 interface RequestBody {
@@ -99,14 +101,26 @@ export default defineEventHandler(async (event) => {
 
       const now = new Date()
 
+      // Build the update object with only provided fields
+      const updateData: Record<string, any> = {
+        meta_updated_at: now
+      }
+
+      if (body.preferences.directoryColumns !== undefined) {
+        updateData.ui_directory_columns = body.preferences.directoryColumns || null
+      }
+      if (body.preferences.theme !== undefined) {
+        updateData.pref_theme = body.preferences.theme
+      }
+      if (body.preferences.colorPalette !== undefined) {
+        updateData.pref_color_palette = body.preferences.colorPalette
+      }
+
       if (existingSettings) {
         // Update existing settings
         await tenantDb
           .update(settingsUser)
-          .set({
-            ui_directory_columns: body.preferences.directoryColumns || null,
-            meta_updated_at: now
-          })
+          .set(updateData)
           .where(eq(settingsUser.ref_user_id, body.userId))
       } else {
         // Insert new settings record
@@ -115,15 +129,11 @@ export default defineEventHandler(async (event) => {
           .insert(settingsUser)
           .values({
             ref_user_id: body.userId,
-            ui_directory_columns: body.preferences.directoryColumns || null,
-            meta_updated_at: now
+            ...updateData
           })
           .onConflictDoUpdate({
             target: settingsUser.ref_user_id,
-            set: {
-              ui_directory_columns: body.preferences.directoryColumns || null,
-              meta_updated_at: now
-            }
+            set: updateData
           })
       }
 

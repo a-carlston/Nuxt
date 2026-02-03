@@ -9,6 +9,8 @@ interface DirectoryColumnsPreferences {
 
 interface UserPreferences {
   directoryColumns: DirectoryColumnsPreferences
+  theme: string | null
+  colorPalette: string | null
 }
 
 export default defineEventHandler(async (event) => {
@@ -72,7 +74,9 @@ export default defineEventHandler(async (event) => {
     try {
       const result = await tenantDb
         .select({
-          directoryColumns: settingsUser.ui_directory_columns
+          directoryColumns: settingsUser.ui_directory_columns,
+          theme: settingsUser.pref_theme,
+          colorPalette: settingsUser.pref_color_palette
         })
         .from(settingsUser)
         .where(eq(settingsUser.ref_user_id, userId))
@@ -88,7 +92,9 @@ export default defineEventHandler(async (event) => {
       directoryColumns: (userSettings?.directoryColumns as DirectoryColumnsPreferences) || {
         visible: [],
         order: []
-      }
+      },
+      theme: userSettings?.theme || null,
+      colorPalette: userSettings?.colorPalette || null
     }
 
     return {

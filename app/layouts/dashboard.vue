@@ -32,7 +32,7 @@ const userInitials = computed(() => {
 
 const isExpanded = ref(false)
 
-const { themeMode, effectiveTheme, colorPalette, setThemeMode, setPalette, palettes, initTheme } = useTheme()
+const { themeMode, effectiveTheme, colorPalette, setThemeMode, setPalette, palettes, initTheme, loadFromDatabase: loadThemeFromDatabase } = useTheme()
 
 const paletteColors: Record<string, string> = {
   corporate: '#6366f1',
@@ -121,6 +121,9 @@ onMounted(async () => {
       } catch {
         // User fetch failed, continue with basic info
       }
+
+      // Load theme preferences from database
+      await loadThemeFromDatabase(authUser.value.id, slug)
     }
   } catch (error) {
     console.error('Failed to load layout data:', error)
