@@ -742,7 +742,7 @@ onMounted(async () => {
       <div class="flex flex-col lg:flex-row gap-2 sm:gap-4 h-[calc(100vh-120px)] sm:h-[calc(100vh-130px)] md:h-[calc(100vh-140px)] lg:h-[calc(100vh-180px)]">
         <!-- Left Panel: Role List with Groups -->
         <div
-          class="w-full lg:w-72 flex-shrink-0 h-full"
+          class="w-full lg:w-72 flex-shrink-0 flex-1 lg:flex-none lg:h-full min-h-0"
           :class="{ 'hidden lg:block': showMobileEditor }"
         >
           <NeuCard variant="flat" padding="none" class="h-full overflow-hidden flex flex-col">
@@ -974,7 +974,7 @@ onMounted(async () => {
 
         <!-- Right Panel: Permission Editor -->
         <div
-          class="flex-1 min-w-0 h-full"
+          class="flex-1 min-w-0 min-h-0 lg:h-full"
           :class="{ 'hidden lg:block': !showMobileEditor }"
         >
           <NeuCard variant="flat" padding="none" class="h-full overflow-hidden flex flex-col">
