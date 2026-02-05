@@ -739,7 +739,7 @@ onMounted(async () => {
 
     <!-- Two Panel Layout (responsive) -->
     <template v-else>
-      <div class="flex flex-col lg:flex-row gap-2 sm:gap-4 h-[calc(100vh-120px)] sm:h-[calc(100vh-130px)] md:h-[calc(100vh-140px)] lg:h-[calc(100vh-180px)]">
+      <div class="flex flex-col lg:flex-row gap-2 sm:gap-4 h-full">
         <!-- Left Panel: Role List with Groups -->
         <div
           class="w-full lg:w-72 flex-shrink-0 flex-1 lg:flex-none lg:h-full min-h-0"

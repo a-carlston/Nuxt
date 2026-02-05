@@ -46,9 +46,9 @@ function navigateToSection(item: typeof adminNavItems[0]) {
 
 <template>
   <NuxtLayout name="dashboard">
-    <div class="flex flex-col lg:flex-row gap-3 lg:gap-6 min-h-[calc(100vh-140px)]">
+    <div class="flex flex-col lg:flex-row gap-2 lg:gap-6 h-[calc(100vh-80px)] sm:h-[calc(100vh-90px)] lg:h-[calc(100vh-120px)]">
       <!-- Mobile Admin Tabs -->
-      <div class="lg:hidden overflow-x-auto -mx-4 px-4">
+      <div class="lg:hidden overflow-x-auto -mx-4 px-4 flex-shrink-0">
         <div class="inline-flex gap-1 p-1 bg-[var(--neu-bg-secondary)]/50 rounded-xl min-w-full">
           <button
             v-for="item in adminNavItems"
@@ -116,7 +116,7 @@ function navigateToSection(item: typeof adminNavItems[0]) {
       </div>
 
       <!-- Main Content Area -->
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0 min-h-0 flex flex-col">
         <slot />
       </div>
     </div>
