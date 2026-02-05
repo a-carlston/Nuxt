@@ -222,6 +222,9 @@ const dataLevelOptions = [
   { label: 'Sensitive', value: 'sensitive' },
 ]
 
+// Standard actions for all pages (View, Edit, Create, Delete)
+const standardActions = ['view', 'edit', 'create', 'delete'] as const
+
 // Master defaults (applies to all pages)
 const masterScope = ref('self')
 const masterDataLevel = ref('basic')
@@ -351,7 +354,8 @@ function loadRolePermissions(roleId: string) {
     // Super admin gets maximum permissions for everything
     if (isSuperAdmin) {
       const actions: Record<string, boolean> = {}
-      for (const action of page.actions) {
+      // Always use standard actions for consistency
+      for (const action of standardActions) {
         actions[action] = true
       }
       perms[page.id] = {
@@ -365,13 +369,13 @@ function loadRolePermissions(roleId: string) {
     const pageData = matrixData.value.pageMatrix[roleId]?.[page.id]
     const dataLevelData = matrixData.value.dataLevelMatrix[roleId]
 
-    // Check if any actions are enabled
-    const hasAnyAction = page.actions.some(a => pageData?.[a])
+    // Check if any actions are enabled (check both page.actions and standardActions)
+    const hasAnyAction = standardActions.some(a => pageData?.[a])
 
     // Get scope from existing permissions or default to master
     let scope = masterScope.value
     if (hasAnyAction) {
-      for (const action of page.actions) {
+      for (const action of standardActions) {
         if (pageData?.[action] && pageData[action] !== 'granted') {
           scope = pageData[action]
           break
@@ -385,8 +389,9 @@ function loadRolePermissions(roleId: string) {
       dataLevel = dataLevelData.view.dataLevel
     }
 
+    // Always use standard actions for consistency (View, Edit, Create, Delete)
     const actions: Record<string, boolean> = {}
-    for (const action of page.actions) {
+    for (const action of standardActions) {
       actions[action] = !!pageData?.[action]
     }
 
@@ -411,7 +416,8 @@ async function saveChanges() {
       const original = originalPermissions.value[page.id]
       if (JSON.stringify(perm) === JSON.stringify(original)) continue
 
-      for (const action of page.actions) {
+      // Always save using standard actions (View, Edit, Create, Delete)
+      for (const action of standardActions) {
         const isEnabled = perm.actions[action]
 
         await $fetch(`/api/tenant/${tenantSlug.value}/rbac/matrix`, {
@@ -985,10 +991,10 @@ onMounted(async () => {
 
         <!-- Right Panel: Permission Editor -->
         <div
-          class="flex-1 min-w-0 min-h-0 lg:h-full"
-          :class="{ 'hidden lg:block': !showMobileEditor }"
+          class="flex-1 min-w-0 min-h-0 lg:h-full flex flex-col"
+          :class="{ 'hidden lg:flex': !showMobileEditor }"
         >
-          <NeuCard variant="flat" padding="none" class="h-full overflow-hidden flex flex-col">
+          <NeuCard variant="flat" padding="none" class="flex-1 min-h-0 flex flex-col overflow-hidden">
             <template v-if="selectedRole">
               <!-- Role Header -->
               <div class="p-3 sm:p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-start sm:items-center justify-between gap-2">
@@ -1170,10 +1176,10 @@ onMounted(async () => {
                         @click="toggleExpandedPage(page.id)"
                       >
                         <span class="flex-1 text-sm text-[var(--neu-text)]">{{ page.name }}</span>
-                        <!-- Action indicators -->
+                        <!-- Action indicators (V E C D) -->
                         <div class="flex items-center gap-1">
                           <span
-                            v-for="action in page.actions"
+                            v-for="action in standardActions"
                             :key="action"
                             class="w-5 h-5 rounded text-[10px] font-medium flex items-center justify-center"
                             :class="localPermissions[page.id]!.actions[action]
@@ -1197,12 +1203,13 @@ onMounted(async () => {
                       <!-- Expanded Content -->
                       <div
                         v-if="expandedMobilePages.has(page.id)"
-                        class="px-3 pb-3 space-y-3 bg-[var(--neu-bg-secondary)]/20"
+                        class="pl-3 pr-5 py-4 bg-[var(--neu-bg-secondary)]/20 border-t border-[var(--neu-shadow-dark)]/10"
                       >
-                        <!-- Scope & Data Level -->
-                        <div class="flex gap-2 pt-2">
-                          <div class="flex-1">
-                            <label class="text-[10px] text-[var(--neu-text-muted)] uppercase tracking-wide">Scope</label>
+                        <!-- Mobile: stacked, Wide: single row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-[auto_auto_1fr] gap-4 sm:gap-6 sm:items-end">
+                          <!-- Scope -->
+                          <div class="sm:w-28">
+                            <label class="text-[10px] text-[var(--neu-text-muted)] uppercase tracking-wide mb-1.5 block">Scope</label>
                             <NeuSelect
                               v-model="localPermissions[page.id]!.scope"
                               :options="scopeOptions"
@@ -1210,8 +1217,10 @@ onMounted(async () => {
                               size="sm"
                             />
                           </div>
-                          <div class="flex-1">
-                            <label class="text-[10px] text-[var(--neu-text-muted)] uppercase tracking-wide">Data</label>
+
+                          <!-- Data Level -->
+                          <div class="sm:w-28">
+                            <label class="text-[10px] text-[var(--neu-text-muted)] uppercase tracking-wide mb-1.5 block">Data</label>
                             <NeuSelect
                               v-model="localPermissions[page.id]!.dataLevel"
                               :options="dataLevelOptions"
@@ -1219,48 +1228,21 @@ onMounted(async () => {
                               size="sm"
                             />
                           </div>
-                        </div>
 
-                        <!-- Actions -->
-                        <div class="flex flex-wrap gap-2">
-                          <label
-                            class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs border transition-colors"
-                            :class="[
-                              areAllActionsEnabled(page.id, page.actions)
-                                ? 'bg-[var(--neu-primary)]/10 border-[var(--neu-primary)]/30 text-[var(--neu-primary)]'
-                                : 'bg-[var(--neu-bg-secondary)] border-transparent text-[var(--neu-text-muted)]',
-                              isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-                            ]"
-                          >
-                            <input
-                              type="checkbox"
-                              :checked="areAllActionsEnabled(page.id, page.actions)"
-                              :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
-                              :disabled="!canManage || isSuperAdminRole"
-                              class="sr-only"
-                              @change="toggleAllActions(page.id, page.actions, $event)"
-                            />
-                            All
-                          </label>
-                          <label
-                            v-for="action in page.actions"
-                            :key="action"
-                            class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs border transition-colors"
-                            :class="[
-                              localPermissions[page.id]!.actions[action]
-                                ? 'bg-[var(--neu-primary)]/10 border-[var(--neu-primary)]/30 text-[var(--neu-primary)]'
-                                : 'bg-[var(--neu-bg-secondary)] border-transparent text-[var(--neu-text-muted)]',
-                              isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-                            ]"
-                          >
-                            <input
-                              type="checkbox"
-                              v-model="localPermissions[page.id]!.actions[action]"
-                              :disabled="!canManage || isSuperAdminRole"
-                              class="sr-only"
-                            />
-                            {{ getActionLabel(action) }}
-                          </label>
+                          <!-- Actions (2 per row) -->
+                          <div>
+                            <label class="text-[10px] text-[var(--neu-text-muted)] uppercase tracking-wide mb-1.5 block">Actions</label>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                              <NeuCheckbox
+                                v-for="action in standardActions"
+                                :key="action"
+                                v-model="localPermissions[page.id]!.actions[action]"
+                                :label="getActionLabel(action)"
+                                :disabled="!canManage || isSuperAdminRole"
+                                size="sm"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1275,7 +1257,7 @@ onMounted(async () => {
                         <th class="py-3 pr-4 pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">Page</th>
                         <th class="py-3 px-4 w-40">Scope</th>
                         <th class="py-3 px-4 w-40">Data Level</th>
-                        <th class="py-3 pl-4">Actions</th>
+                        <th class="py-3 pl-4 pr-6">Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-[var(--neu-shadow-dark)]/5">
@@ -1336,7 +1318,7 @@ onMounted(async () => {
                               size="sm"
                             />
                           </td>
-                          <td class="py-3 pl-4">
+                          <td class="py-3 pl-4 pr-6">
                             <div v-if="localPermissions[page.id]" class="flex items-center gap-4">
                               <!-- Select All checkbox -->
                               <label
@@ -1345,19 +1327,19 @@ onMounted(async () => {
                               >
                                 <input
                                   type="checkbox"
-                                  :checked="areAllActionsEnabled(page.id, page.actions)"
-                                  :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
+                                  :checked="areAllActionsEnabled(page.id, [...standardActions])"
+                                  :indeterminate="areSomeActionsEnabled(page.id, [...standardActions])"
                                   :disabled="!canManage || isSuperAdminRole"
                                   :aria-label="`Select all actions for ${page.name}`"
                                   class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
                                   :class="{ 'cursor-not-allowed': isSuperAdminRole }"
-                                  @change="toggleAllActions(page.id, page.actions, $event)"
+                                  @change="toggleAllActions(page.id, [...standardActions], $event)"
                                 />
                                 <span class="text-xs font-medium text-[var(--neu-text-muted)]">All</span>
                               </label>
-                              <!-- Individual action checkboxes -->
+                              <!-- Individual action checkboxes (View, Edit, Create, Delete) -->
                               <label
-                                v-for="action in page.actions"
+                                v-for="action in standardActions"
                                 :key="action"
                                 class="flex items-center gap-1.5"
                                 :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
