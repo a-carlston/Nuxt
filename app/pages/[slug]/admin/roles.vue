@@ -1141,13 +1141,13 @@ onMounted(async () => {
                       <template v-for="page in organizedPages" :key="page.id">
                         <!-- Section Header (collapsible) -->
                         <tr v-if="page.isSection" class="bg-[var(--neu-bg-secondary)]/50">
-                          <td :colspan="4" class="py-2 sm:py-3 px-2">
+                          <td class="py-2 sm:py-3 pl-2 pr-2 sm:pr-4 sticky left-0 bg-[var(--neu-bg-secondary)]/50 z-10 border-r border-[var(--neu-shadow-dark)]/10">
                             <button
-                              class="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity"
+                              class="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
                               @click="togglePageSection(page.id)"
                             >
                               <svg
-                                class="w-4 h-4 text-[var(--neu-text-muted)] transition-transform"
+                                class="w-4 h-4 text-[var(--neu-text-muted)] transition-transform flex-shrink-0"
                                 :class="{ '-rotate-90': collapsedPageSections.has(page.id) }"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -1155,12 +1155,13 @@ onMounted(async () => {
                               >
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                               </svg>
-                              <span class="font-semibold text-[var(--neu-text)]">{{ page.name }}</span>
+                              <span class="font-semibold text-[var(--neu-text)] whitespace-nowrap">{{ page.name }}</span>
                               <span class="text-xs text-[var(--neu-text-muted)]">
                                 ({{ organizedPages.filter(p => p.parentId === page.id).length }})
                               </span>
                             </button>
                           </td>
+                          <td :colspan="3" class="py-2 sm:py-3"></td>
                         </tr>
 
                         <!-- Sub-page Row (only visible when section expanded) -->
