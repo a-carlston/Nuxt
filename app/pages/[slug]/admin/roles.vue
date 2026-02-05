@@ -1131,7 +1131,7 @@ onMounted(async () => {
                   <table class="w-full min-w-[640px]">
                     <thead>
                       <tr class="text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">
-                        <th class="py-2 sm:py-3 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10">Page</th>
+                        <th class="py-2 sm:py-3 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">Page</th>
                         <th class="py-2 sm:py-3 px-2 sm:px-4 w-32 sm:w-40">Scope</th>
                         <th class="py-2 sm:py-3 px-2 sm:px-4 w-32 sm:w-40">Data Level</th>
                         <th class="py-2 sm:py-3 pl-2 sm:pl-4">Actions</th>
@@ -1165,7 +1165,7 @@ onMounted(async () => {
 
                         <!-- Sub-page Row (only visible when section expanded) -->
                         <tr v-else-if="localPermissions[page.id] && isPageVisible(page)">
-                          <td class="py-2 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10">
+                          <td class="py-2 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">
                             <span class="text-sm text-[var(--neu-text-muted)] whitespace-nowrap">
                               {{ page.name }}
                             </span>
