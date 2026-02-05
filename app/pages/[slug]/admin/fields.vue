@@ -429,20 +429,23 @@ watch(selectedTableId, () => {
   <div>
     <NeuCard variant="flat" padding="none">
       <!-- Header -->
-      <div class="p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-center justify-between">
-        <div>
-          <h1 class="text-lg font-semibold text-[var(--neu-text)]">Field Manager</h1>
-          <p class="text-[var(--neu-text-muted)] text-xs mt-0.5">Configure field labels, sensitivity, and display order</p>
-        </div>
-        <div class="flex items-center gap-3 text-xs">
-          <span
-            v-for="tier in SENSITIVITY_TIERS"
-            :key="tier.value"
-            class="inline-flex items-center gap-1.5"
-          >
-            <span :class="['w-2 h-2 rounded-full', tier.color]" />
-            {{ tier.label }}
-          </span>
+      <div class="p-3 sm:p-4 border-b border-[var(--neu-shadow-dark)]/10">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <div>
+            <h1 class="text-base sm:text-lg font-semibold text-[var(--neu-text)]">Field Manager</h1>
+            <p class="text-[var(--neu-text-muted)] text-xs mt-0.5 hidden sm:block">Configure field labels, sensitivity, and display order</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+            <span
+              v-for="tier in SENSITIVITY_TIERS"
+              :key="tier.value"
+              class="inline-flex items-center gap-1"
+            >
+              <span :class="['w-2 h-2 rounded-full', tier.color]" />
+              <span class="hidden sm:inline">{{ tier.label }}</span>
+              <span class="sm:hidden">{{ tier.label.charAt(0) }}</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -456,33 +459,35 @@ watch(selectedTableId, () => {
       <!-- Content -->
       <template v-else>
         <!-- Table Selector -->
-        <div class="p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-center gap-4">
-          <span class="text-sm font-medium text-[var(--neu-text)]">Table:</span>
-          <div class="flex gap-1 p-1 rounded-lg bg-[var(--neu-bg-secondary)]/50">
-            <button
-              v-for="table in tables"
-              :key="table.id"
-              class="px-4 py-2 text-sm rounded-md transition-all"
-              :class="selectedTableId === table.id
-                ? 'bg-[var(--neu-bg)] shadow-[var(--neu-shadow-flat)] text-[var(--neu-text)] font-medium'
-                : 'text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]'"
-              @click="handleTableChange(table.id)"
-            >
-              {{ table.label }}
-            </button>
+        <div class="p-3 sm:p-4 border-b border-[var(--neu-shadow-dark)]/10 overflow-x-auto">
+          <div class="flex items-center gap-2 sm:gap-4 min-w-max">
+            <span class="text-xs sm:text-sm font-medium text-[var(--neu-text)]">Table:</span>
+            <div class="flex gap-1 p-1 rounded-lg bg-[var(--neu-bg-secondary)]/50">
+              <button
+                v-for="table in tables"
+                :key="table.id"
+                class="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-md transition-all whitespace-nowrap"
+                :class="selectedTableId === table.id
+                  ? 'bg-[var(--neu-bg)] shadow-[var(--neu-shadow-flat)] text-[var(--neu-text)] font-medium'
+                  : 'text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]'"
+                @click="handleTableChange(table.id)"
+              >
+                {{ table.label }}
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Fields Table -->
         <div class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full min-w-[640px]">
             <thead>
               <tr class="border-b border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30">
-                <th class="px-2 py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-16">Order</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-36">Field</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-36">Default</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase">Custom Label</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-44">Sensitivity</th>
+                <th class="px-2 py-2 sm:py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-14 sm:w-16 sticky left-0 bg-[var(--neu-bg-secondary)]/30 z-10">Order</th>
+                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-24 sm:w-36">Field</th>
+                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-24 sm:w-36">Default</th>
+                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase min-w-[140px]">Custom Label</th>
+                <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase w-36 sm:w-44">Sensitivity</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[var(--neu-shadow-dark)]/5">
@@ -507,8 +512,8 @@ watch(selectedTableId, () => {
                 @dragend="onDragEnd"
               >
                 <!-- Order controls -->
-                <td class="px-2 py-3">
-                  <div class="flex items-center gap-1">
+                <td class="px-2 py-2 sm:py-3 sticky left-0 bg-[var(--neu-bg)] z-10">
+                  <div class="flex items-center gap-0.5 sm:gap-1">
                     <!-- Drag handle -->
                     <div class="cursor-grab active:cursor-grabbing p-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -538,15 +543,15 @@ watch(selectedTableId, () => {
                     </div>
                   </div>
                 </td>
-                <td class="px-4 py-3">
-                  <code class="text-xs font-mono text-[var(--neu-text-muted)] bg-[var(--neu-bg-secondary)] px-2 py-1 rounded">
+                <td class="px-2 sm:px-4 py-2 sm:py-3">
+                  <code class="text-[10px] sm:text-xs font-mono text-[var(--neu-text-muted)] bg-[var(--neu-bg-secondary)] px-1 sm:px-2 py-0.5 sm:py-1 rounded truncate block max-w-[80px] sm:max-w-none">
                     {{ field.id }}
                   </code>
                 </td>
-                <td class="px-4 py-3 text-sm text-[var(--neu-text)]">
+                <td class="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[var(--neu-text)]">
                   {{ field.defaultLabel }}
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-2 sm:px-4 py-2 sm:py-3">
                   <NeuInput
                     :model-value="localLabels[field.id] || ''"
                     :placeholder="field.defaultLabel"
@@ -554,17 +559,17 @@ watch(selectedTableId, () => {
                     @update:model-value="(val) => updateLabel(field.id, String(val))"
                   />
                 </td>
-                <td class="px-4 py-3">
-                  <div class="flex items-center gap-2">
-                    <div :class="['w-2 h-2 rounded-full', getTierConfig(getSensitivity(field)).color]" />
+                <td class="px-2 sm:px-4 py-2 sm:py-3">
+                  <div class="flex items-center gap-1 sm:gap-2">
+                    <div :class="['w-2 h-2 rounded-full flex-shrink-0', getTierConfig(getSensitivity(field)).color]" />
                     <NeuSelect
                       :model-value="getSensitivity(field)"
                       :options="getSensitivityOptions(field).map(t => ({ label: t.label, value: t.value }))"
                       size="sm"
-                      class="w-28"
+                      class="w-24 sm:w-28"
                       @update:model-value="(val) => updateSensitivity(field.id, val as SensitivityTier)"
                     />
-                    <span v-if="field.minSensitivity" class="text-xs text-amber-500" :title="`Minimum: ${field.minSensitivity}`">
+                    <span v-if="field.minSensitivity" class="text-xs text-amber-500 flex-shrink-0" :title="`Minimum: ${field.minSensitivity}`">
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
@@ -576,16 +581,16 @@ watch(selectedTableId, () => {
           </table>
         </div>
 
-        <!-- Footer -->
-        <div v-if="hasUnsavedChanges" class="p-4 border-t border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30">
-          <div class="flex items-center justify-between">
+        <!-- Footer (sticky on mobile) -->
+        <div v-if="hasUnsavedChanges" class="p-3 sm:p-4 border-t border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30 sticky bottom-0 z-20">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
             <div class="flex items-center gap-2">
               <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               <span class="text-sm text-[var(--neu-text-muted)]">Unsaved changes</span>
             </div>
-            <div class="flex items-center gap-3">
-              <NeuButton variant="ghost" size="sm" @click="discardChanges">Discard</NeuButton>
-              <NeuButton variant="primary" size="sm" :loading="saving" @click="saveChanges">Save Changes</NeuButton>
+            <div class="flex items-center gap-2 sm:gap-3">
+              <NeuButton variant="ghost" size="sm" class="flex-1 sm:flex-none" @click="discardChanges">Discard</NeuButton>
+              <NeuButton variant="primary" size="sm" class="flex-1 sm:flex-none" :loading="saving" @click="saveChanges">Save</NeuButton>
             </div>
           </div>
         </div>
@@ -599,18 +604,18 @@ watch(selectedTableId, () => {
       leave-active-class="transition duration-150"
       leave-to-class="opacity-0 translate-y-2"
     >
-      <div v-if="notification" class="fixed bottom-6 right-6 z-50">
+      <div v-if="notification" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50">
         <NeuCard
           variant="flat"
           padding="sm"
           :class="['shadow-lg border-l-4', notification.type === 'success' ? 'border-l-green-500' : 'border-l-red-500']"
         >
           <div class="flex items-center gap-3">
-            <div>
-              <p class="font-medium text-[var(--neu-text)]">{{ notification.title }}</p>
-              <p class="text-sm text-[var(--neu-text-muted)]">{{ notification.message }}</p>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-[var(--neu-text)] text-sm sm:text-base">{{ notification.title }}</p>
+              <p class="text-xs sm:text-sm text-[var(--neu-text-muted)] truncate">{{ notification.message }}</p>
             </div>
-            <button @click="notification = null" class="text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]">
+            <button @click="notification = null" class="text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] flex-shrink-0 p-1">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>

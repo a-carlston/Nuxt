@@ -24,11 +24,11 @@ const emit = defineEmits<{
 }>()
 
 const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  full: 'max-w-full mx-4'
+  sm: 'max-w-[calc(100vw-2rem)] sm:max-w-sm',
+  md: 'max-w-[calc(100vw-2rem)] sm:max-w-md',
+  lg: 'max-w-[calc(100vw-2rem)] sm:max-w-lg',
+  xl: 'max-w-[calc(100vw-2rem)] sm:max-w-xl',
+  full: 'max-w-[calc(100vw-2rem)] sm:max-w-full sm:mx-4'
 }
 
 function close() {
@@ -107,24 +107,24 @@ onUnmounted(() => {
           <div
             v-if="modelValue"
             :class="[
-              'relative w-full rounded-2xl bg-[var(--neu-bg)]',
+              'relative w-full rounded-2xl bg-[var(--neu-bg)] max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] flex flex-col',
               sizeClasses[size]
             ]"
           >
             <!-- Header -->
             <div
               v-if="title || $slots.header || showClose"
-              class="flex items-center justify-between p-5 border-b border-[var(--neu-shadow-dark)]/10"
+              class="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--neu-shadow-dark)]/10 flex-shrink-0"
             >
               <slot name="header">
-                <h3 class="text-lg font-semibold text-[var(--neu-text)]">
+                <h3 class="text-base sm:text-lg font-semibold text-[var(--neu-text)]">
                   {{ title }}
                 </h3>
               </slot>
               <button
                 v-if="showClose"
                 type="button"
-                class="p-2 rounded-lg text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] hover:bg-[var(--neu-bg-secondary)] transition-colors"
+                class="p-2 rounded-lg text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] hover:bg-[var(--neu-bg-secondary)] transition-colors flex-shrink-0"
                 @click="close"
               >
                 <svg
@@ -144,14 +144,14 @@ onUnmounted(() => {
             </div>
 
             <!-- Body -->
-            <div class="p-5">
+            <div class="p-4 sm:p-5 overflow-y-auto flex-1">
               <slot />
             </div>
 
             <!-- Footer -->
             <div
               v-if="$slots.footer"
-              class="p-5 border-t border-[var(--neu-shadow-dark)]/10"
+              class="p-4 sm:p-5 border-t border-[var(--neu-shadow-dark)]/10 flex-shrink-0"
             >
               <slot name="footer" />
             </div>

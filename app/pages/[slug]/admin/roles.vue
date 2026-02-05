@@ -161,6 +161,13 @@ const originalPermissions = ref<Record<string, { scope: string; dataLevel: strin
 const loading = ref(false)
 const saving = ref(false)
 
+// Mobile view state (show editor panel on mobile when role is selected)
+const showMobileEditor = ref(false)
+
+function goBackToList() {
+  showMobileEditor.value = false
+}
+
 // Role modal
 const showRoleModal = ref(false)
 const editingRole = ref<MatrixRole | null>(null)
@@ -315,6 +322,7 @@ function selectRole(roleId: string) {
   }
   selectedRoleId.value = roleId
   loadRolePermissions(roleId)
+  showMobileEditor.value = true // Show editor on mobile when role selected
 }
 
 function loadRolePermissions(roleId: string) {
@@ -729,20 +737,23 @@ onMounted(async () => {
       </NeuCard>
     </template>
 
-    <!-- Two Panel Layout -->
+    <!-- Two Panel Layout (responsive) -->
     <template v-else>
-      <div class="flex gap-4 h-[calc(100vh-180px)]">
+      <div class="flex flex-col lg:flex-row gap-2 sm:gap-4 h-[calc(100vh-140px)] sm:h-[calc(100vh-160px)] lg:h-[calc(100vh-180px)]">
         <!-- Left Panel: Role List with Groups -->
-        <div class="w-72 flex-shrink-0">
+        <div
+          class="w-full lg:w-72 flex-shrink-0 h-full"
+          :class="{ 'hidden lg:block': showMobileEditor }"
+        >
           <NeuCard variant="flat" padding="none" class="h-full overflow-hidden flex flex-col">
             <!-- Header with actions -->
-            <div class="p-3 border-b border-[var(--neu-shadow-dark)]/10">
+            <div class="p-2 sm:p-3 border-b border-[var(--neu-shadow-dark)]/10">
               <div class="flex items-center justify-between mb-2">
-                <h2 class="text-sm font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">Roles</h2>
+                <h2 class="text-xs sm:text-sm font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">Roles</h2>
                 <PermissionGate permission="rbac.manage">
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-0.5 sm:gap-1">
                     <button
-                      class="p-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-primary)] transition-colors"
+                      class="p-1.5 sm:p-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-primary)] transition-colors"
                       title="Add Group"
                       @click="openCreateGroupModal"
                     >
@@ -751,7 +762,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
-                      class="p-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-primary)] transition-colors"
+                      class="p-1.5 sm:p-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-primary)] transition-colors"
                       title="Add Tag"
                       @click="openCreateTagModal"
                     >
@@ -760,7 +771,7 @@ onMounted(async () => {
                       </svg>
                     </button>
                     <button
-                      class="p-1 text-[var(--neu-primary)] hover:text-[var(--neu-primary)]/80 transition-colors"
+                      class="p-1.5 sm:p-1 text-[var(--neu-primary)] hover:text-[var(--neu-primary)]/80 transition-colors"
                       title="Add Role"
                       @click="openCreateModal"
                     >
@@ -774,7 +785,7 @@ onMounted(async () => {
 
               <!-- Tag filter -->
               <div class="flex flex-wrap items-center gap-1">
-                <span class="text-xs text-[var(--neu-text-muted)] mr-1">Filter:</span>
+                <span class="text-xs text-[var(--neu-text-muted)] mr-1 hidden sm:inline">Filter:</span>
                 <button
                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs transition-all"
                   :class="selectedTagFilter === null
@@ -799,10 +810,10 @@ onMounted(async () => {
                     :title="`Filter by: ${tag.name}`"
                   >
                     <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: tag.color }" />
-                    {{ tag.name }}
+                    <span class="hidden sm:inline">{{ tag.name }}</span>
                   </button>
                 </template>
-                <span v-else class="text-xs text-[var(--neu-text-muted)] italic">No tags yet</span>
+                <span v-else class="text-xs text-[var(--neu-text-muted)] italic hidden sm:inline">No tags yet</span>
               </div>
             </div>
 
@@ -813,7 +824,7 @@ onMounted(async () => {
                 <!-- Group header -->
                 <div class="flex items-center justify-between pr-2 mb-1">
                   <button
-                    class="flex items-center gap-1.5 text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide hover:text-[var(--neu-text)] transition-colors"
+                    class="flex items-center gap-1.5 text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide hover:text-[var(--neu-text)] transition-colors py-1"
                     @click="toggleGroup(group.id)"
                   >
                     <svg
@@ -828,7 +839,7 @@ onMounted(async () => {
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
-                    {{ group.name }}
+                    <span class="truncate max-w-[120px] sm:max-w-none">{{ group.name }}</span>
                     <span class="text-[var(--neu-text-muted)]/60">({{ rolesByGroup.get(group.id)?.length || 0 }})</span>
                   </button>
                   <PermissionGate permission="rbac.manage">
@@ -859,7 +870,7 @@ onMounted(async () => {
                   <button
                     v-for="role in rolesByGroup.get(group.id)"
                     :key="role.id"
-                    class="w-full px-3 py-2 text-left transition-all mb-1 ml-4"
+                    class="w-full px-2 sm:px-3 py-2.5 sm:py-2 text-left transition-all mb-1 ml-2 sm:ml-4"
                     :class="[
                       selectedRoleId === role.id
                         ? 'bg-[var(--neu-bg-secondary)] text-[var(--neu-primary)] rounded-l-lg shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-1px_-1px_4px_var(--neu-shadow-light)]'
@@ -884,7 +895,7 @@ onMounted(async () => {
                     </div>
                   </button>
 
-                  <div v-if="!rolesByGroup.get(group.id)?.length" class="text-xs text-[var(--neu-text-muted)] italic ml-4 px-3 py-2">
+                  <div v-if="!rolesByGroup.get(group.id)?.length" class="text-xs text-[var(--neu-text-muted)] italic ml-2 sm:ml-4 px-2 sm:px-3 py-2">
                     No roles in this group
                   </div>
                 </div>
@@ -895,7 +906,7 @@ onMounted(async () => {
                 <!-- Ungrouped header (collapsible) -->
                 <div class="flex items-center justify-between pr-2 mb-1">
                   <button
-                    class="flex items-center gap-1.5 text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide hover:text-[var(--neu-text)] transition-colors"
+                    class="flex items-center gap-1.5 text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide hover:text-[var(--neu-text)] transition-colors py-1"
                     @click="toggleGroup('ungrouped')"
                   >
                     <svg
@@ -910,7 +921,8 @@ onMounted(async () => {
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    Ungrouped
+                    <span class="hidden sm:inline">Ungrouped</span>
+                    <span class="sm:hidden">Other</span>
                     <span class="text-[var(--neu-text-muted)]/60">({{ rolesByGroup.get(null)?.length || 0 }})</span>
                   </button>
                 </div>
@@ -920,7 +932,7 @@ onMounted(async () => {
                   <button
                     v-for="role in rolesByGroup.get(null)"
                     :key="role.id"
-                    class="w-full px-3 py-2 text-left transition-all mb-1"
+                    class="w-full px-2 sm:px-3 py-2.5 sm:py-2 text-left transition-all mb-1"
                     :class="[
                       selectedRoleId === role.id
                         ? 'bg-[var(--neu-bg-secondary)] text-[var(--neu-primary)] rounded-l-lg shadow-[inset_3px_3px_6px_var(--neu-shadow-dark),inset_-1px_-1px_4px_var(--neu-shadow-light)]'
@@ -961,24 +973,36 @@ onMounted(async () => {
         </div>
 
         <!-- Right Panel: Permission Editor -->
-        <div class="flex-1 min-w-0">
+        <div
+          class="flex-1 min-w-0 h-full"
+          :class="{ 'hidden lg:block': !showMobileEditor }"
+        >
           <NeuCard variant="flat" padding="none" class="h-full overflow-hidden flex flex-col">
             <template v-if="selectedRole">
               <!-- Role Header -->
-              <div class="p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-center justify-between">
-                <div>
-                  <div class="flex items-center gap-3">
-                    <h2 class="text-lg font-semibold text-[var(--neu-text)]">{{ selectedRole.name }}</h2>
-                    <NeuBadge v-if="selectedRole.isSystem" variant="default" size="sm">System</NeuBadge>
+              <div class="p-3 sm:p-4 border-b border-[var(--neu-shadow-dark)]/10 flex items-start sm:items-center justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Mobile back button -->
+                    <button
+                      class="lg:hidden p-1 -ml-1 text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] flex-shrink-0"
+                      @click="goBackToList"
+                    >
+                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <h2 class="text-base sm:text-lg font-semibold text-[var(--neu-text)] truncate">{{ selectedRole.name }}</h2>
+                    <NeuBadge v-if="selectedRole.isSystem" variant="default" size="sm" class="flex-shrink-0">System</NeuBadge>
                   </div>
-                  <p v-if="selectedRole.description" class="text-sm text-[var(--neu-text-muted)] mt-1">
+                  <p v-if="selectedRole.description" class="text-xs sm:text-sm text-[var(--neu-text-muted)] mt-1 line-clamp-2 lg:line-clamp-none">
                     {{ selectedRole.description }}
                   </p>
                   <div v-if="selectedRole.tags && selectedRole.tags.length > 0" class="flex flex-wrap gap-1 mt-2">
                     <span
                       v-for="tag in selectedRole.tags"
                       :key="tag.id"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs"
+                      class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded text-xs"
                       :style="{ backgroundColor: tag.color + '20', color: tag.color }"
                     >
                       <span class="w-1.5 h-1.5 rounded-full" :style="{ backgroundColor: tag.color }" />
@@ -986,11 +1010,11 @@ onMounted(async () => {
                     </span>
                   </div>
                   <!-- Super Admin notice -->
-                  <div v-if="isSuperAdminRole" class="mt-2 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div v-if="isSuperAdminRole" class="mt-2 flex items-start sm:items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                    <svg class="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Super Admin has full access to everything. Permissions cannot be modified.
+                    <span class="leading-tight">Super Admin has full access. Permissions cannot be modified.</span>
                   </div>
                 </div>
                 <PermissionGate permission="rbac.manage">
@@ -1017,47 +1041,47 @@ onMounted(async () => {
               </div>
 
               <!-- Permission Summary -->
-              <div class="px-4 pt-4 pb-2 border-b border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/20">
-                <div class="flex items-center justify-between gap-6">
+              <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 border-b border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/20">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-6">
                   <!-- Scope Summary -->
-                  <div class="flex items-center gap-3">
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span class="text-xs font-semibold text-[var(--neu-text-muted)] uppercase">Scope:</span>
-                    <div class="flex items-center gap-1.5 text-xs">
-                      <span v-if="permissionSummary.scopes.company" class="px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-400">
+                    <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs">
+                      <span v-if="permissionSummary.scopes.company" class="px-1.5 sm:px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-400">
                         Company {{ permissionSummary.scopes.company }}
                       </span>
-                      <span v-if="permissionSummary.scopes.division" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-400">
+                      <span v-if="permissionSummary.scopes.division" class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-400">
                         Division {{ permissionSummary.scopes.division }}
                       </span>
-                      <span v-if="permissionSummary.scopes.department" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                      <span v-if="permissionSummary.scopes.department" class="px-1.5 sm:px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-400">
                         Dept {{ permissionSummary.scopes.department }}
                       </span>
-                      <span v-if="permissionSummary.scopes.direct_reports" class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-700 dark:text-orange-400">
+                      <span v-if="permissionSummary.scopes.direct_reports" class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-500/20 text-orange-700 dark:text-orange-400">
                         Direct {{ permissionSummary.scopes.direct_reports }}
                       </span>
-                      <span v-if="permissionSummary.scopes.self" class="px-2 py-0.5 rounded bg-red-500/20 text-red-700 dark:text-red-400">
+                      <span v-if="permissionSummary.scopes.self" class="px-1.5 sm:px-2 py-0.5 rounded bg-red-500/20 text-red-700 dark:text-red-400">
                         Self {{ permissionSummary.scopes.self }}
                       </span>
-                      <span v-if="permissionSummary.scopes.granted" class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-700 dark:text-teal-400">
+                      <span v-if="permissionSummary.scopes.granted" class="px-1.5 sm:px-2 py-0.5 rounded bg-teal-500/20 text-teal-700 dark:text-teal-400">
                         Granted {{ permissionSummary.scopes.granted }}
                       </span>
                       <span v-if="permissionSummary.enabled === 0" class="text-[var(--neu-text-muted)]">None</span>
                     </div>
                   </div>
                   <!-- Data Level Summary -->
-                  <div class="flex items-center gap-3">
+                  <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                     <span class="text-xs font-semibold text-[var(--neu-text-muted)] uppercase">Data:</span>
-                    <div class="flex items-center gap-1.5 text-xs">
-                      <span v-if="permissionSummary.dataLevels.sensitive" class="px-2 py-0.5 rounded bg-red-500/20 text-red-700 dark:text-red-400">
+                    <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 text-xs">
+                      <span v-if="permissionSummary.dataLevels.sensitive" class="px-1.5 sm:px-2 py-0.5 rounded bg-red-500/20 text-red-700 dark:text-red-400">
                         Sensitive {{ permissionSummary.dataLevels.sensitive }}
                       </span>
-                      <span v-if="permissionSummary.dataLevels.company" class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-700 dark:text-orange-400">
+                      <span v-if="permissionSummary.dataLevels.company" class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-500/20 text-orange-700 dark:text-orange-400">
                         Company {{ permissionSummary.dataLevels.company }}
                       </span>
-                      <span v-if="permissionSummary.dataLevels.personal" class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-400">
+                      <span v-if="permissionSummary.dataLevels.personal" class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 dark:text-blue-400">
                         Personal {{ permissionSummary.dataLevels.personal }}
                       </span>
-                      <span v-if="permissionSummary.dataLevels.basic" class="px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-400">
+                      <span v-if="permissionSummary.dataLevels.basic" class="px-1.5 sm:px-2 py-0.5 rounded bg-green-500/20 text-green-700 dark:text-green-400">
                         Basic {{ permissionSummary.dataLevels.basic }}
                       </span>
                       <span v-if="Object.keys(permissionSummary.dataLevels).length === 0" class="text-[var(--neu-text-muted)]">-</span>
@@ -1071,157 +1095,162 @@ onMounted(async () => {
               </div>
 
               <!-- Master Defaults -->
-              <div v-if="!isSuperAdminRole" class="px-4 py-3 border-b border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30">
-                <div class="flex items-center gap-6">
+              <div v-if="!isSuperAdminRole" class="px-3 sm:px-4 py-2 sm:py-3 border-b border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
                   <span class="text-sm font-medium text-[var(--neu-text)]">Default Settings:</span>
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs text-[var(--neu-text-muted)]">Scope</span>
-                    <NeuSelect
-                      v-model="masterScope"
-                      :options="scopeOptions"
-                      :disabled="!canManage"
-                      size="sm"
-                      @update:modelValue="applyMasterScope"
-                    />
+                  <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-[var(--neu-text-muted)]">Scope</span>
+                      <NeuSelect
+                        v-model="masterScope"
+                        :options="scopeOptions"
+                        :disabled="!canManage"
+                        size="sm"
+                        @update:modelValue="applyMasterScope"
+                      />
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs text-[var(--neu-text-muted)]">Data</span>
+                      <NeuSelect
+                        v-model="masterDataLevel"
+                        :options="dataLevelOptions"
+                        :disabled="!canManage"
+                        size="sm"
+                        @update:modelValue="applyMasterDataLevel"
+                      />
+                    </div>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs text-[var(--neu-text-muted)]">Data</span>
-                    <NeuSelect
-                      v-model="masterDataLevel"
-                      :options="dataLevelOptions"
-                      :disabled="!canManage"
-                      size="sm"
-                      @update:modelValue="applyMasterDataLevel"
-                    />
-                  </div>
-                  <span class="text-xs text-[var(--neu-text-muted)]">(Changes apply to all pages below)</span>
+                  <span class="text-xs text-[var(--neu-text-muted)] hidden sm:inline">(Changes apply to all pages below)</span>
                 </div>
               </div>
 
               <!-- Permissions Table -->
-              <div class="flex-1 overflow-auto p-4">
-                <table class="w-full">
-                  <thead>
-                    <tr class="text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">
-                      <th class="pb-3 pr-4">Page</th>
-                      <th class="pb-3 px-4 w-40">Scope</th>
-                      <th class="pb-3 px-4 w-40">Data Level</th>
-                      <th class="pb-3 pl-4">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-[var(--neu-shadow-dark)]/5">
-                    <template v-for="page in organizedPages" :key="page.id">
-                      <!-- Section Header (collapsible) -->
-                      <tr v-if="page.isSection" class="bg-[var(--neu-bg-secondary)]/50">
-                        <td :colspan="4" class="py-3 px-2">
-                          <button
-                            class="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity"
-                            @click="togglePageSection(page.id)"
-                          >
-                            <svg
-                              class="w-4 h-4 text-[var(--neu-text-muted)] transition-transform"
-                              :class="{ '-rotate-90': collapsedPageSections.has(page.id) }"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                            <span class="font-semibold text-[var(--neu-text)]">{{ page.name }}</span>
-                            <span class="text-xs text-[var(--neu-text-muted)]">
-                              ({{ organizedPages.filter(p => p.parentId === page.id).length }})
-                            </span>
-                          </button>
-                        </td>
+              <div class="flex-1 overflow-auto p-2 sm:p-4">
+                <!-- Scrollable table wrapper for mobile -->
+                <div class="overflow-x-auto -mx-2 sm:mx-0">
+                  <table class="w-full min-w-[640px]">
+                    <thead>
+                      <tr class="text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">
+                        <th class="pb-3 pr-2 sm:pr-4 sticky left-0 bg-[var(--neu-bg)] z-10">Page</th>
+                        <th class="pb-3 px-2 sm:px-4 w-32 sm:w-40">Scope</th>
+                        <th class="pb-3 px-2 sm:px-4 w-32 sm:w-40">Data Level</th>
+                        <th class="pb-3 pl-2 sm:pl-4">Actions</th>
                       </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[var(--neu-shadow-dark)]/5">
+                      <template v-for="page in organizedPages" :key="page.id">
+                        <!-- Section Header (collapsible) -->
+                        <tr v-if="page.isSection" class="bg-[var(--neu-bg-secondary)]/50">
+                          <td :colspan="4" class="py-2 sm:py-3 px-2">
+                            <button
+                              class="flex items-center gap-2 w-full text-left hover:opacity-80 transition-opacity"
+                              @click="togglePageSection(page.id)"
+                            >
+                              <svg
+                                class="w-4 h-4 text-[var(--neu-text-muted)] transition-transform"
+                                :class="{ '-rotate-90': collapsedPageSections.has(page.id) }"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                              <span class="font-semibold text-[var(--neu-text)]">{{ page.name }}</span>
+                              <span class="text-xs text-[var(--neu-text-muted)]">
+                                ({{ organizedPages.filter(p => p.parentId === page.id).length }})
+                              </span>
+                            </button>
+                          </td>
+                        </tr>
 
-                      <!-- Sub-page Row (only visible when section expanded) -->
-                      <tr v-else-if="localPermissions[page.id] && isPageVisible(page)">
-                        <td class="py-2 pr-4 pl-6">
-                          <span class="text-sm text-[var(--neu-text-muted)]">
-                            {{ page.name }}
-                          </span>
-                        </td>
-                        <td class="py-3 px-4">
-                          <NeuSelect
-                            v-if="localPermissions[page.id]"
-                            v-model="localPermissions[page.id]!.scope"
-                            :options="scopeOptions"
-                            :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
-                            size="sm"
-                          />
-                        </td>
-                        <td class="py-3 px-4">
-                          <NeuSelect
-                            v-if="localPermissions[page.id]"
-                            v-model="localPermissions[page.id]!.dataLevel"
-                            :options="dataLevelOptions"
-                            :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
-                            size="sm"
-                          />
-                        </td>
-                        <td class="py-3 pl-4">
-                          <div v-if="localPermissions[page.id]" class="flex items-center gap-4">
-                            <!-- Select All checkbox -->
-                            <label
-                              class="flex items-center gap-1.5 pr-2 border-r border-[var(--neu-shadow-dark)]/20"
-                              :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
-                            >
-                              <input
-                                type="checkbox"
-                                :checked="areAllActionsEnabled(page.id, page.actions)"
-                                :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
-                                @change="toggleAllActions(page.id, page.actions, $event)"
-                                :disabled="!canManage || isSuperAdminRole"
-                                class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
-                                :class="{ 'cursor-not-allowed': isSuperAdminRole }"
-                              />
-                              <span class="text-xs font-medium text-[var(--neu-text-muted)]">All</span>
-                            </label>
-                            <!-- Individual action checkboxes -->
-                            <label
-                              v-for="action in page.actions"
-                              :key="action"
-                              class="flex items-center gap-1.5"
-                              :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
-                            >
-                              <input
-                                type="checkbox"
-                                v-model="localPermissions[page.id]!.actions[action]"
-                                :disabled="!canManage || isSuperAdminRole"
-                                class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
-                                :class="{ 'cursor-not-allowed': isSuperAdminRole }"
-                              />
-                              <span class="text-xs text-[var(--neu-text-muted)]">{{ getActionLabel(action) }}</span>
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                    </template>
-                  </tbody>
-                </table>
+                        <!-- Sub-page Row (only visible when section expanded) -->
+                        <tr v-else-if="localPermissions[page.id] && isPageVisible(page)">
+                          <td class="py-2 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10">
+                            <span class="text-sm text-[var(--neu-text-muted)] whitespace-nowrap">
+                              {{ page.name }}
+                            </span>
+                          </td>
+                          <td class="py-2 sm:py-3 px-2 sm:px-4">
+                            <NeuSelect
+                              v-if="localPermissions[page.id]"
+                              v-model="localPermissions[page.id]!.scope"
+                              :options="scopeOptions"
+                              :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
+                              size="sm"
+                            />
+                          </td>
+                          <td class="py-2 sm:py-3 px-2 sm:px-4">
+                            <NeuSelect
+                              v-if="localPermissions[page.id]"
+                              v-model="localPermissions[page.id]!.dataLevel"
+                              :options="dataLevelOptions"
+                              :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
+                              size="sm"
+                            />
+                          </td>
+                          <td class="py-2 sm:py-3 pl-2 sm:pl-4">
+                            <div v-if="localPermissions[page.id]" class="flex items-center gap-2 sm:gap-4">
+                              <!-- Select All checkbox -->
+                              <label
+                                class="flex items-center gap-1 sm:gap-1.5 pr-2 border-r border-[var(--neu-shadow-dark)]/20"
+                                :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
+                              >
+                                <input
+                                  type="checkbox"
+                                  :checked="areAllActionsEnabled(page.id, page.actions)"
+                                  :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
+                                  @change="toggleAllActions(page.id, page.actions, $event)"
+                                  :disabled="!canManage || isSuperAdminRole"
+                                  class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
+                                  :class="{ 'cursor-not-allowed': isSuperAdminRole }"
+                                />
+                                <span class="text-xs font-medium text-[var(--neu-text-muted)] hidden sm:inline">All</span>
+                              </label>
+                              <!-- Individual action checkboxes -->
+                              <label
+                                v-for="action in page.actions"
+                                :key="action"
+                                class="flex items-center gap-1 sm:gap-1.5"
+                                :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
+                              >
+                                <input
+                                  type="checkbox"
+                                  v-model="localPermissions[page.id]!.actions[action]"
+                                  :disabled="!canManage || isSuperAdminRole"
+                                  class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
+                                  :class="{ 'cursor-not-allowed': isSuperAdminRole }"
+                                />
+                                <span class="text-xs text-[var(--neu-text-muted)] whitespace-nowrap">{{ getActionLabel(action) }}</span>
+                              </label>
+                            </div>
+                          </td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
 
                 <!-- Legend -->
-                <div class="mt-6 pt-4 border-t border-[var(--neu-shadow-dark)]/10">
+                <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[var(--neu-shadow-dark)]/10">
                   <p class="text-xs text-[var(--neu-text-muted)]">
-                    <strong>Scope:</strong> Self → Direct Reports → Department → Division → Company (each level includes all narrower scopes)
+                    <strong>Scope:</strong> Self → Direct Reports → Department → Division → Company
                   </p>
                   <p class="text-xs text-[var(--neu-text-muted)] mt-1">
-                    <strong>Data Level:</strong> Basic (name, title) → Personal (contact, address) → Company (department, salary grade) → Sensitive (SSN, exact pay)
+                    <strong>Data Level:</strong> Basic → Personal → Company → Sensitive
                   </p>
                 </div>
               </div>
 
-              <!-- Footer -->
-              <div v-if="hasUnsavedChanges" class="p-4 border-t border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30">
-                <div class="flex items-center justify-between">
+              <!-- Footer (sticky on mobile for unsaved changes) -->
+              <div v-if="hasUnsavedChanges" class="p-3 sm:p-4 border-t border-[var(--neu-shadow-dark)]/10 bg-[var(--neu-bg-secondary)]/30 sticky bottom-0 z-20">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                   <div class="flex items-center gap-2">
                     <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                     <span class="text-sm text-[var(--neu-text-muted)]">Unsaved changes</span>
                   </div>
-                  <div class="flex items-center gap-3">
-                    <NeuButton variant="ghost" size="sm" @click="discardChanges">Discard</NeuButton>
-                    <NeuButton variant="primary" size="sm" :loading="saving" @click="saveChanges">Save Changes</NeuButton>
+                  <div class="flex items-center gap-2 sm:gap-3">
+                    <NeuButton variant="ghost" size="sm" class="flex-1 sm:flex-none" @click="discardChanges">Discard</NeuButton>
+                    <NeuButton variant="primary" size="sm" class="flex-1 sm:flex-none" :loading="saving" @click="saveChanges">Save</NeuButton>
                   </div>
                 </div>
               </div>
@@ -1378,18 +1407,18 @@ onMounted(async () => {
       leave-active-class="transition duration-150"
       leave-to-class="opacity-0 translate-y-2"
     >
-      <div v-if="notification" class="fixed bottom-6 right-6 z-50">
+      <div v-if="notification" class="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50">
         <NeuCard
           variant="flat"
           padding="sm"
           :class="['shadow-lg border-l-4', notification.type === 'success' ? 'border-l-green-500' : 'border-l-red-500']"
         >
           <div class="flex items-center gap-3">
-            <div>
-              <p class="font-medium text-[var(--neu-text)]">{{ notification.title }}</p>
-              <p class="text-sm text-[var(--neu-text-muted)]">{{ notification.message }}</p>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-[var(--neu-text)] text-sm sm:text-base">{{ notification.title }}</p>
+              <p class="text-xs sm:text-sm text-[var(--neu-text-muted)] truncate">{{ notification.message }}</p>
             </div>
-            <button @click="notification = null" class="text-[var(--neu-text-muted)] hover:text-[var(--neu-text)]">
+            <button @click="notification = null" class="text-[var(--neu-text-muted)] hover:text-[var(--neu-text)] flex-shrink-0 p-1">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
