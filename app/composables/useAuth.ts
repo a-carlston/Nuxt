@@ -152,6 +152,14 @@ export function useAuth() {
         tenant: null
       }
       isLoading.value = false
+
+      // Clear permission state on logout
+      try {
+        const { clearPermissions } = usePermissions()
+        clearPermissions()
+      } catch {
+        // Permissions composable may not be initialized
+      }
     }
   }
 

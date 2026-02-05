@@ -37,7 +37,6 @@ const { user: authUser, isInitialized: authInitialized, initAuth } = useAuth()
 // State
 // ============================================================================
 
-const isLoading = ref(true)
 const isSaving = ref(false)
 const showReviewSidebar = ref(false)
 const expandedGroups = ref<Set<string | number>>(new Set())
@@ -539,19 +538,8 @@ onMounted(async () => {
     return
   }
 
-  // Wait for auth to be initialized if not already
-  if (!authInitialized.value) {
-    await initAuth()
-  }
-
-  // Get userId from auth (already validated by middleware)
-  const userId = authUser.value?.id || ''
-
-  // Load custom column labels from API
-  await loadColumnLabels()
-
-  // Initialize column preferences composable after session is established
-  // Default columns: all visible, original order
+  // Initialize column preferences composable immediately with defaults
+  // This allows the table to render with all columns while preferences load
   const defaultColumns = {
     visible: columns.map(col => col.id),
     order: columns.map(col => col.id)
@@ -562,28 +550,18 @@ onMounted(async () => {
     defaultColumns,
     {
       tenantSlug: slug,
-      userId: userId || undefined,
+      userId: authUser.value?.id || undefined,
       debounceMs: 300
     }
   )
 
-  // Wait for preferences to be loaded
-  // The composable auto-loads on creation, but we need to wait for it
-  if (columnPreferences.value) {
-    // Wait a tick for the async load to complete
-    await new Promise<void>((resolve) => {
-      const checkInitialized = () => {
-        if (columnPreferences.value?.initialized.value) {
-          resolve()
-        } else {
-          setTimeout(checkInitialized, 50)
-        }
-      }
-      checkInitialized()
-    })
-  }
+  // Load column labels in the background (non-blocking)
+  loadColumnLabels()
 
-  isLoading.value = false
+  // If auth isn't initialized yet, wait for it then update preferences with userId
+  if (!authInitialized.value) {
+    initAuth()
+  }
 })
 
 // Watch for auth state changes and update composable if userId becomes available
@@ -610,16 +588,7 @@ watch(
 
   <!-- Data Table -->
   <NeuContainer max-width="full" :padded="false">
-    <!-- Loading state when fetchUrl or preferences not ready -->
-    <NeuCard v-if="!fetchUrl || !preferencesLoaded || isLoading" padding="md">
-      <div class="p-12 text-center">
-        <div class="w-12 h-12 border-4 border-[var(--neu-primary)]/20 border-t-[var(--neu-primary)] rounded-full animate-spin mx-auto mb-4" />
-        <p class="text-[var(--neu-text-muted)]">Loading table...</p>
-      </div>
-    </NeuCard>
-
-    <!-- Data Table -->
-    <NeuCard v-else padding="md" class="neu-table-card">
+    <NeuCard v-if="fetchUrl" padding="md" class="neu-table-card">
       <NeuDataTable
         ref="tableRef"
         :columns="displayedColumns"

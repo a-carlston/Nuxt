@@ -11,6 +11,7 @@ interface UserPreferences {
   directoryColumns?: DirectoryColumnsPreferences
   theme?: string
   colorPalette?: string
+  expandedMode?: boolean
 }
 
 interface RequestBody {
@@ -114,6 +115,9 @@ export default defineEventHandler(async (event) => {
       }
       if (body.preferences.colorPalette !== undefined) {
         updateData.pref_color_palette = body.preferences.colorPalette
+      }
+      if (body.preferences.expandedMode !== undefined) {
+        updateData.ui_expanded_mode = body.preferences.expandedMode
       }
 
       if (existingSettings) {

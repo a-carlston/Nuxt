@@ -9,6 +9,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { coreUsers } from './core';
+import { rbacRoles } from './rbac';
 
 // =============================================================================
 // SETTINGS_COMPANY - Company-wide Settings
@@ -90,6 +91,18 @@ export const settingsCompany = pgTable('settings_company', {
   // Structure: { [tableId]: { [columnId]: { label: string } } }
   // Example: { "directory": { "firstName": { "label": "Given Name" }, "lastName": { "label": "Family Name" } } }
   config_column_labels: jsonb('config_column_labels').$type<Record<string, Record<string, { label: string }>>>(),
+
+  // --------------------------------------------------------------------------
+  // config_field_sensitivity - Cached field sensitivity configuration
+  // --------------------------------------------------------------------------
+  // Structure: { [tableName]: { [fieldName]: { sensitivity: string, masking: string, order: number } } }
+  // Example: { "core_users": { "personal_ssn": { "sensitivity": "sensitive", "masking": "last4", "order": 0 } } }
+  config_field_sensitivity: jsonb('config_field_sensitivity').$type<Record<string, Record<string, { sensitivity: string; masking: string; order: number }>>>(),
+
+  // --------------------------------------------------------------------------
+  // config_default_role_id - Default role for new users
+  // --------------------------------------------------------------------------
+  config_default_role_id: uuid('config_default_role_id').references(() => rbacRoles.meta_id, { onDelete: 'set null' }),
 });
 
 // =============================================================================
@@ -133,6 +146,7 @@ export const settingsUser = pgTable('settings_user', {
   // ui_ - User interface preferences (Self access level)
   // --------------------------------------------------------------------------
   ui_directory_columns: jsonb('ui_directory_columns'), // { visible: string[], order: string[] }
+  ui_expanded_mode: boolean('ui_expanded_mode').notNull().default(false), // Full-width layout mode
 });
 
 // =============================================================================

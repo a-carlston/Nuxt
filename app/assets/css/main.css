@@ -14,3 +14,40 @@ body {
   min-height: 100vh;
   color: var(--neu-text);
 }
+
+/* Custom Scrollbar Styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neu-shadow-dark) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--neu-shadow-dark);
+  border-radius: 4px;
+  opacity: 0.3;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--neu-text-muted);
+}
+
+/* Hide scrollbar arrows */
+*::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Scrollbar corner */
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

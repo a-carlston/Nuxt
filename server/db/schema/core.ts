@@ -532,6 +532,45 @@ export const coreDepartmentSkills = pgTable(
 );
 
 // ============================================================================
+// CORE_USER_SUPERVISORS - Direct Reports Relationships
+// ============================================================================
+
+export const coreUserSupervisors = pgTable(
+  'core_user_supervisors',
+  {
+    // meta_
+    meta_id: uuid('meta_id').defaultRandom().primaryKey(),
+    meta_created_at: timestamp('meta_created_at', { withTimezone: true }).defaultNow().notNull(),
+    meta_updated_at: timestamp('meta_updated_at', { withTimezone: true }).defaultNow().notNull(),
+
+    // ref_
+    ref_user_id: uuid('ref_user_id')
+      .references(() => coreUsers.meta_id, { onDelete: 'cascade' })
+      .notNull(),
+    ref_supervisor_id: uuid('ref_supervisor_id')
+      .references(() => coreUsers.meta_id, { onDelete: 'cascade' })
+      .notNull(),
+
+    // info_
+    info_relationship_type: varchar('info_relationship_type', { length: 20 }).notNull().default('direct'), // direct, dotted_line, mentor
+    info_effective_date: date('info_effective_date'),
+    info_end_date: date('info_end_date'),
+
+    // config_
+    config_is_primary: boolean('config_is_primary').default(true).notNull(),
+  },
+  (table) => [
+    index('idx_core_user_supervisors_ref_user_id').on(table.ref_user_id),
+    index('idx_core_user_supervisors_ref_supervisor_id').on(table.ref_supervisor_id),
+    unique('uq_core_user_supervisors_user_supervisor_type').on(
+      table.ref_user_id,
+      table.ref_supervisor_id,
+      table.info_relationship_type
+    ),
+  ]
+);
+
+// ============================================================================
 // CORE_PASSWORD_HISTORY - Password Reuse Prevention
 // ============================================================================
 
@@ -651,6 +690,23 @@ export const coreUsersRelations = relations(coreUsers, ({ one, many }) => ({
   customFields: many(coreUserCustomFields),
   passwordHistory: many(corePasswordHistory),
   managedDepartments: many(coreDepartments),
+  // Supervisor relationships
+  supervisors: many(coreUserSupervisors, { relationName: 'userSupervisors' }),
+  directReports: many(coreUserSupervisors, { relationName: 'supervisorUsers' }),
+}));
+
+// User Supervisors Relations
+export const coreUserSupervisorsRelations = relations(coreUserSupervisors, ({ one }) => ({
+  user: one(coreUsers, {
+    fields: [coreUserSupervisors.ref_user_id],
+    references: [coreUsers.meta_id],
+    relationName: 'userSupervisors',
+  }),
+  supervisor: one(coreUsers, {
+    fields: [coreUserSupervisors.ref_supervisor_id],
+    references: [coreUsers.meta_id],
+    relationName: 'supervisorUsers',
+  }),
 }));
 
 // User Languages Relations

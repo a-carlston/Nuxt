@@ -6,6 +6,10 @@ const tenantSlug = computed(() => route.params.slug as string)
 // Auth state
 const { user: authUser, logout, userInitials: authUserInitials } = useAuth()
 
+// Permissions
+const { can, isLoaded: permissionsLoaded } = usePermissions()
+const canManageRbac = computed(() => permissionsLoaded.value && can('rbac.manage'))
+
 const isLoading = ref(true)
 
 const user = ref({
@@ -30,7 +34,13 @@ const userInitials = computed(() => {
   return `${user.value.firstName[0]}${user.value.lastName[0]}`.toUpperCase()
 })
 
-const isExpanded = ref(false)
+// Expanded mode state with persistence
+const {
+  isExpanded,
+  toggle: toggleExpanded,
+  init: initExpandedMode,
+  loadFromDatabase: loadExpandedFromDatabase
+} = useExpandedMode()
 
 const { themeMode, effectiveTheme, colorPalette, setThemeMode, setPalette, palettes, initTheme, loadFromDatabase: loadThemeFromDatabase } = useTheme()
 
@@ -45,16 +55,27 @@ const paletteColors: Record<string, string> = {
 // Determine current route for nav highlighting
 const currentRoute = computed(() => {
   const path = route.path
+  if (path.includes('/admin')) return 'admin'
   if (path.includes('/directory')) return 'directory'
   if (path.includes('/dashboard')) return 'dashboard'
-  // Settings and admin pages don't highlight any nav item
+  // Settings pages don't highlight any nav item
   return ''
 })
 
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'directory', label: 'Directory' }
-]
+// Check if we're in admin area
+const isInAdmin = computed(() => route.path.includes('/admin'))
+
+// Nav items - include Admin when in admin area
+const navItems = computed(() => {
+  const items = [
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'directory', label: 'Directory' }
+  ]
+  if (isInAdmin.value) {
+    items.push({ id: 'admin', label: 'Admin' })
+  }
+  return items
+})
 
 function handleNavSelect(id: string) {
   const slug = tenantSlug.value
@@ -62,6 +83,8 @@ function handleNavSelect(id: string) {
     navigateTo(`/${slug}/dashboard`)
   } else if (id === 'directory') {
     navigateTo(`/${slug}/directory`)
+  } else if (id === 'admin') {
+    navigateTo(`/${slug}/admin`)
   }
 }
 
@@ -72,9 +95,10 @@ provide('layoutIsExpanded', isExpanded)
 provide('layoutIsLoading', isLoading)
 
 onMounted(async () => {
-  // Initialize theme (client-side only)
+  // Initialize theme and expanded mode (client-side only)
   if (import.meta.client) {
     initTheme()
+    initExpandedMode()
   }
 
   const slug = tenantSlug.value
@@ -122,8 +146,9 @@ onMounted(async () => {
         // User fetch failed, continue with basic info
       }
 
-      // Load theme preferences from database
+      // Load user preferences from database
       await loadThemeFromDatabase(authUser.value.id, slug)
+      await loadExpandedFromDatabase(authUser.value.id, slug)
     }
   } catch (error) {
     console.error('Failed to load layout data:', error)
@@ -239,7 +264,7 @@ async function handleSignOut() {
         <button
           class="neu-expand-btn p-2 rounded-lg transition-all"
           :title="isExpanded ? 'Collapse' : 'Expand'"
-          @click="isExpanded = !isExpanded"
+          @click="toggleExpanded"
         >
           <svg
             v-if="!isExpanded"
@@ -293,13 +318,30 @@ async function handleSignOut() {
                 </svg>
                 My Profile
               </NuxtLink>
-              <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--neu-text)] hover:bg-[var(--neu-bg-secondary)] transition-colors text-left">
+              <NuxtLink
+                :to="`/${tenantSlug}/settings/profile`"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--neu-text)] hover:bg-[var(--neu-bg-secondary)] transition-colors text-left"
+                @click="close"
+              >
                 <svg class="w-4 h-4 text-[var(--neu-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 Settings
-              </button>
+              </NuxtLink>
+              <!-- Debug: permissionsLoaded={{ permissionsLoaded }}, canManageRbac={{ canManageRbac }} -->
+              <NuxtLink
+                v-if="canManageRbac"
+                :to="`/${tenantSlug}/admin`"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--neu-text)] hover:bg-[var(--neu-bg-secondary)] transition-colors text-left"
+                @click="close"
+              >
+                <svg class="w-4 h-4 text-[var(--neu-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Admin
+              </NuxtLink>
             </div>
 
             <div class="border-t border-[var(--neu-shadow-dark)]/10 p-2">

@@ -11,6 +11,7 @@ interface UserPreferences {
   directoryColumns: DirectoryColumnsPreferences
   theme: string | null
   colorPalette: string | null
+  expandedMode: boolean | null
 }
 
 export default defineEventHandler(async (event) => {
@@ -76,7 +77,8 @@ export default defineEventHandler(async (event) => {
         .select({
           directoryColumns: settingsUser.ui_directory_columns,
           theme: settingsUser.pref_theme,
-          colorPalette: settingsUser.pref_color_palette
+          colorPalette: settingsUser.pref_color_palette,
+          expandedMode: settingsUser.ui_expanded_mode
         })
         .from(settingsUser)
         .where(eq(settingsUser.ref_user_id, userId))
@@ -94,7 +96,8 @@ export default defineEventHandler(async (event) => {
         order: []
       },
       theme: userSettings?.theme || null,
-      colorPalette: userSettings?.colorPalette || null
+      colorPalette: userSettings?.colorPalette || null,
+      expandedMode: userSettings?.expandedMode ?? null
     }
 
     return {

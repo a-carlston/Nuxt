@@ -8,6 +8,20 @@
       "when": 1770141482997,
       "tag": "0000_add-column-labels",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770159231289,
+      "tag": "0001_rbac-phase1-schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770249600000,
+      "tag": "0002_field_sensitivity",
+      "breakpoints": true
     }
   ]
 }

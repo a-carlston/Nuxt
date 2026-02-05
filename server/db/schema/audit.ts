@@ -75,12 +75,14 @@ export const auditLogs = pgTable(
     ),
 
     // audit_ - Audit trail data
-    audit_action: varchar('audit_action', { length: 50 }).notNull(), // create, update, delete, login, logout, export
+    audit_action: varchar('audit_action', { length: 50 }).notNull(), // create, update, delete, login, logout, export, view
     audit_resource_type: varchar('audit_resource_type', { length: 50 }).notNull(), // core_users, rbac_roles, etc.
     audit_resource_id: uuid('audit_resource_id'),
     audit_changes: jsonb('audit_changes'), // { field: { old, new } }
     audit_ip_address: inet('audit_ip_address'),
     audit_user_agent: text('audit_user_agent'),
+    audit_data_level: varchar('audit_data_level', { length: 20 }), // basic, personal, sensitive (for HIPAA/SOC2 compliance)
+    audit_fields_accessed: jsonb('audit_fields_accessed').$type<string[]>(), // ['ssn', 'pay_rate', 'bank_account_number', ...]
   },
   (table) => [
     index('audit_logs_meta_created_at_idx').on(table.meta_created_at),

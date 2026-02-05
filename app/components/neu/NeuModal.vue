@@ -91,7 +91,7 @@ onUnmounted(() => {
       >
         <!-- Overlay -->
         <div
-          class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          class="absolute inset-0 bg-black/40"
           @click="handleOverlayClick"
         />
 
@@ -107,7 +107,7 @@ onUnmounted(() => {
           <div
             v-if="modelValue"
             :class="[
-              'relative w-full rounded-2xl bg-[var(--neu-bg)] shadow-[var(--neu-shadow-flat)]',
+              'relative w-full rounded-2xl bg-[var(--neu-bg)]',
               sizeClasses[size]
             ]"
           >

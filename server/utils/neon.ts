@@ -697,6 +697,55 @@ export async function initializeTenantSchema(connectionString: string): Promise<
   await sql`CREATE INDEX IF NOT EXISTS rbac_user_roles_info_scope_type_idx ON rbac_user_roles(info_scope_type)`
   await sql`CREATE INDEX IF NOT EXISTS rbac_user_roles_info_scope_id_idx ON rbac_user_roles(info_scope_id)`
 
+  // RBAC_USER_TAGS
+  await sql`
+    CREATE TABLE IF NOT EXISTS rbac_user_tags (
+      meta_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      meta_created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      ref_user_id UUID NOT NULL REFERENCES core_users(meta_id) ON DELETE CASCADE,
+      info_tag VARCHAR(50) NOT NULL,
+      info_category VARCHAR(30) NOT NULL,
+      UNIQUE(ref_user_id, info_tag)
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS rbac_user_tags_ref_user_id_idx ON rbac_user_tags(ref_user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS rbac_user_tags_info_tag_idx ON rbac_user_tags(info_tag)`
+  await sql`CREATE INDEX IF NOT EXISTS rbac_user_tags_info_category_idx ON rbac_user_tags(info_category)`
+
+  // RBAC_TAG_PERMISSIONS
+  await sql`
+    CREATE TABLE IF NOT EXISTS rbac_tag_permissions (
+      meta_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      meta_created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      info_tag VARCHAR(50) NOT NULL,
+      info_target_tags TEXT[],
+      ref_permission_id UUID NOT NULL REFERENCES rbac_permissions(meta_id) ON DELETE CASCADE,
+      config_effect VARCHAR(10) NOT NULL DEFAULT 'grant',
+      config_priority INTEGER NOT NULL DEFAULT 0
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS rbac_tag_permissions_info_tag_idx ON rbac_tag_permissions(info_tag)`
+  await sql`CREATE INDEX IF NOT EXISTS rbac_tag_permissions_ref_permission_id_idx ON rbac_tag_permissions(ref_permission_id)`
+  await sql`CREATE INDEX IF NOT EXISTS rbac_tag_permissions_config_effect_idx ON rbac_tag_permissions(config_effect)`
+
+  // CORE_USER_SUPERVISORS
+  await sql`
+    CREATE TABLE IF NOT EXISTS core_user_supervisors (
+      meta_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      meta_created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      meta_updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      ref_user_id UUID NOT NULL REFERENCES core_users(meta_id) ON DELETE CASCADE,
+      ref_supervisor_id UUID NOT NULL REFERENCES core_users(meta_id) ON DELETE CASCADE,
+      info_relationship_type VARCHAR(20) NOT NULL DEFAULT 'direct',
+      info_effective_date DATE,
+      info_end_date DATE,
+      config_is_primary BOOLEAN NOT NULL DEFAULT true,
+      UNIQUE(ref_user_id, ref_supervisor_id, info_relationship_type)
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS idx_core_user_supervisors_ref_user_id ON core_user_supervisors(ref_user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_core_user_supervisors_ref_supervisor_id ON core_user_supervisors(ref_supervisor_id)`
+
   // AUDIT_SESSIONS
   await sql`
     CREATE TABLE IF NOT EXISTS audit_sessions (
@@ -728,7 +777,9 @@ export async function initializeTenantSchema(connectionString: string): Promise<
       audit_resource_id UUID,
       audit_changes JSONB,
       audit_ip_address INET,
-      audit_user_agent TEXT
+      audit_user_agent TEXT,
+      audit_data_level VARCHAR(20),
+      audit_fields_accessed JSONB
     )
   `
   await sql`CREATE INDEX IF NOT EXISTS audit_logs_meta_created_at_idx ON audit_logs(meta_created_at)`
