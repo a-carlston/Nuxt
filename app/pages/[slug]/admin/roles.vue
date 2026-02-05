@@ -1124,26 +1124,144 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <!-- Permissions Table -->
+              <!-- Permissions Section -->
               <div class="flex-1 overflow-auto p-2 sm:p-4">
-                <!-- Scrollable table wrapper for mobile -->
-                <div class="overflow-x-auto -mx-2 sm:mx-0">
-                  <table class="w-full min-w-[640px]">
+                <!-- Mobile/Tablet Card View (below lg breakpoint) -->
+                <div class="lg:hidden space-y-3">
+                  <template v-for="page in organizedPages" :key="`mobile-${page.id}`">
+                    <!-- Section Divider (collapsible) -->
+                    <div v-if="page.isSection" class="sticky top-0 z-10">
+                      <button
+                        class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-[var(--neu-bg-secondary)] shadow-neu-flat hover:opacity-90 transition-opacity"
+                        :aria-expanded="!collapsedPageSections.has(page.id)"
+                        :aria-controls="`section-${page.id}`"
+                        @click="togglePageSection(page.id)"
+                      >
+                        <div class="flex items-center gap-2">
+                          <svg
+                            class="w-4 h-4 text-[var(--neu-text-muted)] transition-transform flex-shrink-0"
+                            :class="{ '-rotate-90': collapsedPageSections.has(page.id) }"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                          <span class="font-semibold text-sm text-[var(--neu-text)]">{{ page.name }}</span>
+                        </div>
+                        <span class="text-xs text-[var(--neu-text-muted)] bg-[var(--neu-bg)]/50 px-2 py-0.5 rounded-full">
+                          {{ organizedPages.filter(p => p.parentId === page.id).length }}
+                        </span>
+                      </button>
+                    </div>
+
+                    <!-- Permission Card -->
+                    <NeuCard
+                      v-else-if="localPermissions[page.id] && isPageVisible(page)"
+                      :id="`section-${page.parentId}`"
+                      variant="flat"
+                      padding="sm"
+                      class="space-y-3"
+                    >
+                      <!-- Card Header: Page name + All checkbox -->
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-medium text-[var(--neu-text)]">{{ page.name }}</span>
+                        <label
+                          class="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--neu-bg)]/50"
+                          :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
+                        >
+                          <input
+                            type="checkbox"
+                            :checked="areAllActionsEnabled(page.id, page.actions)"
+                            :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
+                            :disabled="!canManage || isSuperAdminRole"
+                            :aria-label="`Select all actions for ${page.name}`"
+                            class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
+                            :class="{ 'cursor-not-allowed': isSuperAdminRole }"
+                            @change="toggleAllActions(page.id, page.actions, $event)"
+                          />
+                          <span class="text-xs font-medium text-[var(--neu-text-muted)]">All</span>
+                        </label>
+                      </div>
+
+                      <!-- Dropdowns Row: Scope and Data Level -->
+                      <div class="grid grid-cols-2 gap-2">
+                        <div class="space-y-1">
+                          <label class="text-xs text-[var(--neu-text-muted)]">Scope</label>
+                          <NeuSelect
+                            v-model="localPermissions[page.id]!.scope"
+                            :options="scopeOptions"
+                            :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
+                            :aria-label="`Scope for ${page.name}`"
+                            size="sm"
+                          />
+                        </div>
+                        <div class="space-y-1">
+                          <label class="text-xs text-[var(--neu-text-muted)]">Data Level</label>
+                          <NeuSelect
+                            v-model="localPermissions[page.id]!.dataLevel"
+                            :options="dataLevelOptions"
+                            :disabled="!canManage || isSuperAdminRole || !Object.values(localPermissions[page.id]!.actions).some(v => v)"
+                            :aria-label="`Data level for ${page.name}`"
+                            size="sm"
+                          />
+                        </div>
+                      </div>
+
+                      <!-- Action Checkboxes Row -->
+                      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 pt-2 border-t border-[var(--neu-shadow-dark)]/10">
+                        <label
+                          v-for="action in page.actions"
+                          :key="action"
+                          class="flex items-center gap-1.5"
+                          :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
+                        >
+                          <input
+                            type="checkbox"
+                            v-model="localPermissions[page.id]!.actions[action]"
+                            :disabled="!canManage || isSuperAdminRole"
+                            :aria-label="`${getActionLabel(action)} permission for ${page.name}`"
+                            class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
+                            :class="{ 'cursor-not-allowed': isSuperAdminRole }"
+                          />
+                          <span class="text-xs text-[var(--neu-text-muted)]">{{ getActionLabel(action) }}</span>
+                        </label>
+                      </div>
+                    </NeuCard>
+                  </template>
+
+                  <!-- Mobile Legend (simplified) -->
+                  <div class="mt-4 pt-3 border-t border-[var(--neu-shadow-dark)]/10 space-y-1">
+                    <p class="text-xs text-[var(--neu-text-muted)]">
+                      <strong>Scope:</strong> Self, Direct Reports, Dept, Div, Company
+                    </p>
+                    <p class="text-xs text-[var(--neu-text-muted)]">
+                      <strong>Data:</strong> Basic, Personal, Company, Sensitive
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Desktop Table View (lg and above) -->
+                <div class="hidden lg:block">
+                  <table class="w-full">
                     <thead>
                       <tr class="text-left text-xs font-semibold text-[var(--neu-text-muted)] uppercase tracking-wide">
-                        <th class="py-2 sm:py-3 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">Page</th>
-                        <th class="py-2 sm:py-3 px-2 sm:px-4 w-32 sm:w-40">Scope</th>
-                        <th class="py-2 sm:py-3 px-2 sm:px-4 w-32 sm:w-40">Data Level</th>
-                        <th class="py-2 sm:py-3 pl-2 sm:pl-4">Actions</th>
+                        <th class="py-3 pr-4 pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">Page</th>
+                        <th class="py-3 px-4 w-40">Scope</th>
+                        <th class="py-3 px-4 w-40">Data Level</th>
+                        <th class="py-3 pl-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-[var(--neu-shadow-dark)]/5">
-                      <template v-for="page in organizedPages" :key="page.id">
+                      <template v-for="page in organizedPages" :key="`desktop-${page.id}`">
                         <!-- Section Header (collapsible) -->
                         <tr v-if="page.isSection" class="bg-[var(--neu-bg-secondary)]/50">
-                          <td class="py-2 sm:py-3 pl-2 pr-2 sm:pr-4 sticky left-0 bg-[var(--neu-bg-secondary)]/50 z-10 border-r border-[var(--neu-shadow-dark)]/10">
+                          <td class="py-3 pl-2 pr-4 sticky left-0 bg-[var(--neu-bg-secondary)]/50 z-10 border-r border-[var(--neu-shadow-dark)]/10">
                             <button
                               class="flex items-center gap-2 text-left hover:opacity-80 transition-opacity"
+                              :aria-expanded="!collapsedPageSections.has(page.id)"
+                              :aria-controls="`desktop-section-${page.id}`"
                               @click="togglePageSection(page.id)"
                             >
                               <svg
@@ -1152,6 +1270,7 @@ onMounted(async () => {
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
+                                aria-hidden="true"
                               >
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                               </svg>
@@ -1161,17 +1280,20 @@ onMounted(async () => {
                               </span>
                             </button>
                           </td>
-                          <td :colspan="3" class="py-2 sm:py-3"></td>
+                          <td :colspan="3" class="py-3"></td>
                         </tr>
 
                         <!-- Sub-page Row (only visible when section expanded) -->
-                        <tr v-else-if="localPermissions[page.id] && isPageVisible(page)">
-                          <td class="py-2 pr-2 sm:pr-4 pl-4 sm:pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">
+                        <tr
+                          v-else-if="localPermissions[page.id] && isPageVisible(page)"
+                          :id="`desktop-section-${page.parentId}`"
+                        >
+                          <td class="py-2 pr-4 pl-6 sticky left-0 bg-[var(--neu-bg)] z-10 border-r border-[var(--neu-shadow-dark)]/10">
                             <span class="text-sm text-[var(--neu-text-muted)] whitespace-nowrap">
                               {{ page.name }}
                             </span>
                           </td>
-                          <td class="py-2 sm:py-3 px-2 sm:px-4">
+                          <td class="py-3 px-4">
                             <NeuSelect
                               v-if="localPermissions[page.id]"
                               v-model="localPermissions[page.id]!.scope"
@@ -1180,7 +1302,7 @@ onMounted(async () => {
                               size="sm"
                             />
                           </td>
-                          <td class="py-2 sm:py-3 px-2 sm:px-4">
+                          <td class="py-3 px-4">
                             <NeuSelect
                               v-if="localPermissions[page.id]"
                               v-model="localPermissions[page.id]!.dataLevel"
@@ -1189,35 +1311,37 @@ onMounted(async () => {
                               size="sm"
                             />
                           </td>
-                          <td class="py-2 sm:py-3 pl-2 sm:pl-4">
-                            <div v-if="localPermissions[page.id]" class="flex items-center gap-2 sm:gap-4">
+                          <td class="py-3 pl-4">
+                            <div v-if="localPermissions[page.id]" class="flex items-center gap-4">
                               <!-- Select All checkbox -->
                               <label
-                                class="flex items-center gap-1 sm:gap-1.5 pr-2 border-r border-[var(--neu-shadow-dark)]/20"
+                                class="flex items-center gap-1.5 pr-2 border-r border-[var(--neu-shadow-dark)]/20"
                                 :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
                               >
                                 <input
                                   type="checkbox"
                                   :checked="areAllActionsEnabled(page.id, page.actions)"
                                   :indeterminate="areSomeActionsEnabled(page.id, page.actions)"
-                                  @change="toggleAllActions(page.id, page.actions, $event)"
                                   :disabled="!canManage || isSuperAdminRole"
+                                  :aria-label="`Select all actions for ${page.name}`"
                                   class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
                                   :class="{ 'cursor-not-allowed': isSuperAdminRole }"
+                                  @change="toggleAllActions(page.id, page.actions, $event)"
                                 />
-                                <span class="text-xs font-medium text-[var(--neu-text-muted)] hidden sm:inline">All</span>
+                                <span class="text-xs font-medium text-[var(--neu-text-muted)]">All</span>
                               </label>
                               <!-- Individual action checkboxes -->
                               <label
                                 v-for="action in page.actions"
                                 :key="action"
-                                class="flex items-center gap-1 sm:gap-1.5"
+                                class="flex items-center gap-1.5"
                                 :class="[isSuperAdminRole ? 'cursor-not-allowed opacity-70' : 'cursor-pointer', { 'opacity-50': !canManage }]"
                               >
                                 <input
                                   type="checkbox"
                                   v-model="localPermissions[page.id]!.actions[action]"
                                   :disabled="!canManage || isSuperAdminRole"
+                                  :aria-label="`${getActionLabel(action)} permission for ${page.name}`"
                                   class="w-4 h-4 rounded border-[var(--neu-shadow-dark)]/30 text-[var(--neu-primary)] focus:ring-[var(--neu-primary)] focus:ring-offset-0"
                                   :class="{ 'cursor-not-allowed': isSuperAdminRole }"
                                 />
@@ -1229,16 +1353,16 @@ onMounted(async () => {
                       </template>
                     </tbody>
                   </table>
-                </div>
 
-                <!-- Legend -->
-                <div class="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-[var(--neu-shadow-dark)]/10">
-                  <p class="text-xs text-[var(--neu-text-muted)]">
-                    <strong>Scope:</strong> Self → Direct Reports → Department → Division → Company
-                  </p>
-                  <p class="text-xs text-[var(--neu-text-muted)] mt-1">
-                    <strong>Data Level:</strong> Basic → Personal → Company → Sensitive
-                  </p>
+                  <!-- Desktop Legend -->
+                  <div class="mt-6 pt-4 border-t border-[var(--neu-shadow-dark)]/10">
+                    <p class="text-xs text-[var(--neu-text-muted)]">
+                      <strong>Scope:</strong> Self → Direct Reports → Department → Division → Company
+                    </p>
+                    <p class="text-xs text-[var(--neu-text-muted)] mt-1">
+                      <strong>Data Level:</strong> Basic → Personal → Company → Sensitive
+                    </p>
+                  </div>
                 </div>
               </div>
 
